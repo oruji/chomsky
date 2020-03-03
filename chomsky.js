@@ -71,6 +71,10 @@ function secondComp(globArr) {
 
     items.push(item);
   }
+  if (items.length === 0) {
+    throw new RegexError("empty add items subexpression at index "
+        + globArr.index, globArr.index);
+  }
 
   return genMul(items);
 }
