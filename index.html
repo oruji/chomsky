@@ -1,0 +1,21 @@
+<link rel="stylesheet" href="style.css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script>
+function onClick() {
+	$("#myError").text("");
+	var inVar = $("#inVar").val();
+	
+	try {
+		var outVar = inVar;
+		
+	} catch(err) {
+		$("#myError").text(err.message);
+	}
+	
+	$("#outVar").text(outVar);
+}
+</script>
+<input type="text" id="inVar" value="a+a" />
+<button onclick="onClick()">Click</button>
+<p id="myError"></p>
+<pre id="outVar"></pre>
