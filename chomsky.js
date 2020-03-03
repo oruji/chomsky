@@ -44,6 +44,76 @@ function makeInputSeq(arr) {
   };
 }
 
+function firstComp(globArr) {
+  var items = [];
+  while (true) {
+    items.push(secondComp(globArr));
+    if (globArr.select() === "+") {
+      globArr.next();
+    } else {
+      break;
+    }
+  }
+
+  return genAdd(items);
+}
+
+function secondComp(globArr) {
+  var items = [];
+  var item;
+
+  while (true) {
+    item = thirdComp(globArr);
+
+    if (item === undefined) {
+      break;
+    }
+
+    items.push(item);
+  }
+
+  return genMul(items);
+}
+
+function thirdComp(globArr) {
+  var item = forthComp(globArr);
+
+  if (globArr.select() === "*") {
+    globArr.next();
+    item = genStar(item);
+  }
+  return item;
+}
+
+function forthComp(globArr) {
+  if (globArr.select() === "(") {
+    globArr.next();
+    var expr = firstComp(globArr);
+    globArr.next();
+
+    return expr;
+
+  } else if (globArr.select() === specs.LAMBDA) {
+    globArr.next();
+
+    return genLam();
+
+  } else if (globArr.select() === undefined || globArr.select() === "+"
+      || globArr.select() === ")") {
+
+    return undefined;
+
+  } else if (globArr.select() === "*") {
+    throw new RegexError("empty before star at " + globArr.index, globArr.index);
+
+  } else {
+    var item = genAtom(globArr.select());
+    globArr.next();
+
+    return item;
+  }
+}
+
 function genAdd(sels) {
   return {
     type : types.ADD,
