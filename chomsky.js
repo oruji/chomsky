@@ -165,3 +165,39 @@ function RegexError(message, position) {
 }
 
 RegexError.prototype = new Error();
+
+// minimizing regular expression
+
+// (type) => type
+function minimize_01(hier) {
+  if (hier.type === types.MUL || hier.type === types.ADD) {
+    if (hier.items.length === 1) {
+
+      hier.type = hier.items[0].type;
+
+      copyObj(hier, hier.items[0]);
+      return true;
+
+    }
+  }
+
+  return false;
+}
+
+function removeObj(obj) {
+  for ( var o in obj) {
+    if (o.hasOwnProperty(o)) {
+      delete obj[o];
+    }
+  }
+}
+
+function copyObj(obj, obj2) {
+  removeObj(obj);
+
+  for (o in obj2) {
+    if (obj2.hasOwnProperty(o)) {
+      obj[o] = obj2[o];
+    }
+  }
+}

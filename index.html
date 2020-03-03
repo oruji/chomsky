@@ -1,6 +1,6 @@
 <link rel="stylesheet" href="style.css" />
 <script
-	src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="chomsky.js"></script>
 <script>
   function onClick() {
@@ -8,8 +8,8 @@
     var inVar = $("#inVar").val();
 
     try {
-      
-      var outVar = JSON.stringify(toHier(inVar), undefined,4);
+
+      var outVar = minimize_01(toHier(inVar));
 
     } catch (err) {
       $("#myError").text(err.message);
