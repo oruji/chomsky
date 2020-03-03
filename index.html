@@ -9,7 +9,7 @@
 
     try {
       
-      var outVar = minimize(inVar);
+      var outVar = JSON.stringify(toHier(inVar), undefined,4);
 
     } catch (err) {
       $("#myError").text(err.message);
