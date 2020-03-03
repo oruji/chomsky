@@ -89,6 +89,12 @@ function forthComp(globArr) {
   if (globArr.select() === "(") {
     globArr.next();
     var expr = firstComp(globArr);
+
+    if (globArr.select() !== ")") {
+      throw new RegexError("missing matching right parenthesis at "
+          + globArr.index, globArr.index);
+    }
+
     globArr.next();
 
     return expr;
@@ -147,3 +153,11 @@ function genLam() {
     type : types.LAM
   };
 }
+
+function RegexError(message, position) {
+  this.name = "RegexError";
+  this.message = message;
+  this.position = position;
+}
+
+RegexError.prototype = new Error();
