@@ -2,8 +2,7 @@ var keys = {
   ADD : 'add',
   MUL : 'mul',
   STAR : 'star',
-  ATOM : 'atom',
-  LAM : 'lam'
+  ATOM : 'atom'
 };
 
 var specs = {
@@ -23,7 +22,7 @@ function minimize(str) {
   return toStr(hier);
 }
 
-// (key) => key
+// (key) => key, mul and add with len=1 are not mul and add
 function minimize_01(hier) {
   if (hier.key === keys.MUL || hier.key === keys.ADD) {
     if (hier.val.length === 1) {
@@ -179,12 +178,6 @@ function genAtom(atom) {
   };
 }
 
-function genLam() {
-  return {
-    key : keys.LAM
-  };
-}
-
 function RegexError(message, position) {
   this.name = "RegexError";
   this.message = message;
@@ -215,8 +208,8 @@ function toStr(hier) {
   if (hier.key === keys.ATOM) {
     return hier.val;
 
-  } else if (hier.key === keys.LAM) {
-    return specs.LAMBDA;
+  } else if (hier.key === keys.STAR) {
+    return toStr(hier.val) + "*";
 
   } else if (hier.key === keys.MUL) {
     var tempStr = "";
@@ -224,6 +217,7 @@ function toStr(hier) {
     for ( var i = 0; i < hier.val.length; i++) {
       tempStr += toStr(hier.val[i]);
     }
+
     return tempStr;
 
   } else if (hier.key === keys.ADD) {
@@ -234,9 +228,7 @@ function toStr(hier) {
         tempStr += "+";
       tempStr += toStr(hier.val[i]);
     }
-    return "(" + tempStr + ")";
 
-  } else if (hier.key === keys.STAR) {
-    return toStr(hier.val) + "*";
+    return "(" + tempStr + ")";
   }
 }
