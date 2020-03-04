@@ -14,6 +14,16 @@ var hier;
 
 function minimize(str) {
   hier = toHier(str);
+
+  do {
+    var notMin = minimize_01(hier);
+
+  } while (notMin);
+
+  minimize_01(hier);
+  minimize_01(hier);
+  minimize_01(hier);
+
   minimize_01(hier);
 
   return hier;
@@ -191,7 +201,7 @@ RegexError.prototype = new Error();
 
 function removeObj(obj) {
   for ( var o in obj) {
-    if (o.hasOwnProperty(o)) {
+    if (obj.hasOwnProperty(o)) {
       delete obj[o];
     }
   }
