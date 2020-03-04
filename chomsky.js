@@ -11,7 +11,7 @@ var specs = {
 
 var hier;
 
-var minimize_list = [ minimize_01 ];
+var minimize_list = [ minimize_01, minimize_02 ];
 
 function minimize(str) {
   hier = toHier(str);
@@ -30,16 +30,17 @@ function minimize(str) {
 
 function minimize_loop(hier) {
   for ( var i = 0; i < minimize_list.length; i++) {
-    var notMin = minimize_recursive(hier);
+    var notMin = minimize_recursive(hier, minimize_list[i]);
 
     if (notMin) {
       return notMin;
     }
   }
+  return null;
 }
 
-function minimize_recursive(hier) {
-  var notMin = minimize_01(hier);
+function minimize_recursive(hier, minFunc) {
+  var notMin = minFunc(hier);
 
   if (notMin) {
     return notMin;
@@ -47,7 +48,7 @@ function minimize_recursive(hier) {
 
   if (hier.key === types.MUL || hier.key === types.ADD) {
     for ( var i = 0; i < hier.val.length; i++) {
-      notMin = minimize_recursive(hier.val[i]);
+      notMin = minimize_recursive(hier.val[i], minFunc);
 
       if (notMin) {
         return notMin;
@@ -58,7 +59,28 @@ function minimize_recursive(hier) {
   return false;
 }
 
-// (key) => key, mul & add with len=1 are not mull & add
+// exprλ => expr
+function minimize_02(hier) {
+  if (hier.key === types.MUL && hier.val.length >= 2) {
+    var lamIndex = -1;
+
+    for ( var i = 0; i < hier.val.length; i++) {
+      if (hier.val[i].val === specs.LAMBDA) {
+        lamIndex = i;
+      }
+    }
+
+    if (lamIndex >= 0) {
+      hier.val.splice(lamIndex, 1);
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// (expr) => expr, mul & add with len=1 are not mull & add
 function minimize_01(hier) {
   if (hier.key === types.MUL || hier.key === types.ADD) {
     if (hier.val.length === 1) {
@@ -168,7 +190,7 @@ function forthComp(globArr) {
   } else if (globArr.select() === specs.LAMBDA) {
     globArr.next();
 
-    return genLam();
+    return genAtom(specs.LAMBDA);
 
   } else if (globArr.select() === undefined || globArr.select() === "+"
       || globArr.select() === ")") {
