@@ -11,7 +11,13 @@ var specs = {
 
 var hier;
 
-var minimize_list = [ minimize_01, minimize_02 ];
+var minimize_list = [ {
+  'rule' : '(expr) => expr',
+  'func' : minimize_01
+}, {
+  'rule' : 'exprλ => expr',
+  'func' : minimize_02
+} ];
 
 function minimize(str) {
   hier = toHier(str);
@@ -30,7 +36,7 @@ function minimize(str) {
 
 function minimize_loop(hier) {
   for ( var i = 0; i < minimize_list.length; i++) {
-    var notMin = minimize_recursive(hier, minimize_list[i]);
+    var notMin = minimize_recursive(hier, minimize_list[i]['func']);
 
     if (notMin) {
       return notMin;
