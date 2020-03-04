@@ -10,6 +10,29 @@ var specs = {
   LAMBDA : '\u03BB'
 };
 
+var hier;
+
+function minimize(str) {
+  hier = toHier(str);
+  minimize_01(hier);
+
+  return hier;
+}
+
+// (type) => type
+function minimize_01(hier) {
+  if (hier.type === types.MUL || hier.type === types.ADD) {
+    if (hier.items.length === 1) {
+      hier.type = hier.items[0].type;
+      copyObj(hier, hier.items[0]);
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
 // convert String to Hierarchical Structure
 function toHier(str) {
   // convert string to array
@@ -23,7 +46,7 @@ function toHier(str) {
     return genMul([]);
   }
 
-  var globArr = makeInputSeq(arr);
+  var globArr = genGlobArr(arr);
   var hier = firstComp(globArr);
 
   return hier;
@@ -35,7 +58,7 @@ function select() {
 function next() {
   ++this.index;
 }
-function makeInputSeq(arr) {
+function genGlobArr(arr) {
   return {
     arr : arr,
     index : 0,
@@ -165,24 +188,6 @@ function RegexError(message, position) {
 }
 
 RegexError.prototype = new Error();
-
-// minimizing regular expression
-
-// (type) => type
-function minimize_01(hier) {
-  if (hier.type === types.MUL || hier.type === types.ADD) {
-    if (hier.items.length === 1) {
-
-      hier.type = hier.items[0].type;
-
-      copyObj(hier, hier.items[0]);
-      return true;
-
-    }
-  }
-
-  return false;
-}
 
 function removeObj(obj) {
   for ( var o in obj) {
