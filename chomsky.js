@@ -1,4 +1,4 @@
-var keys = {
+var types = {
   ADD : 'add',
   MUL : 'mul',
   STAR : 'star',
@@ -15,16 +15,36 @@ function minimize(str) {
   hier = toHier(str);
 
   do {
-    var notMin = minimize_01(hier);
+    var notMin = minimize_recursive(hier);
 
   } while (notMin);
 
   return toStr(hier);
 }
 
-// (key) => key, mul and add with len=1 are not mul and add
+function minimize_recursive(hier) {
+  var notMin = minimize_01(hier);
+
+  if (notMin) {
+    return notMin;
+  }
+
+  if (hier.key === types.MUL || hier.key === types.ADD) {
+    for ( var i = 0; i < hier.val.length; i++) {
+      notMin = minimize_recursive(hier.val[i]);
+
+      if (notMin) {
+        return notMin;
+      }
+    }
+  }
+
+  return false;
+}
+
+// (key) => key, mul & add with len=1 are not mull & add
 function minimize_01(hier) {
-  if (hier.key === keys.MUL || hier.key === keys.ADD) {
+  if (hier.key === types.MUL || hier.key === types.ADD) {
     if (hier.val.length === 1) {
       hier.key = hier.val[0].key;
       copyObj(hier, hier.val[0]);
@@ -152,28 +172,28 @@ function forthComp(globArr) {
 
 function genAdd(sels) {
   return {
-    key : keys.ADD,
+    key : types.ADD,
     val : sels
   };
 }
 
 function genMul(els) {
   return {
-    key : keys.MUL,
+    key : types.MUL,
     val : els
   };
 }
 
 function genStar(expr) {
   return {
-    key : keys.STAR,
+    key : types.STAR,
     val : expr
   };
 }
 
 function genAtom(atom) {
   return {
-    key : keys.ATOM,
+    key : types.ATOM,
     val : atom
   };
 }
@@ -205,13 +225,13 @@ function copyObj(obj, obj2) {
 }
 
 function toStr(hier) {
-  if (hier.key === keys.ATOM) {
+  if (hier.key === types.ATOM) {
     return hier.val;
 
-  } else if (hier.key === keys.STAR) {
+  } else if (hier.key === types.STAR) {
     return toStr(hier.val) + "*";
 
-  } else if (hier.key === keys.MUL) {
+  } else if (hier.key === types.MUL) {
     var tempStr = "";
 
     for ( var i = 0; i < hier.val.length; i++) {
@@ -220,7 +240,7 @@ function toStr(hier) {
 
     return tempStr;
 
-  } else if (hier.key === keys.ADD) {
+  } else if (hier.key === types.ADD) {
     var tempStr = "";
 
     for ( var i = 0; i < hier.val.length; i++) {
