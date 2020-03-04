@@ -19,11 +19,26 @@ var minimize_list = [ {
   'func' : minimize_02
 } ];
 
-function minimize(str) {
+minimize_list.push(args);
+
+function minimize(str, param) {
   hier = toHier(str);
 
+  if (param === undefined) {
+    param = {};
+  }
+
+  if (param.rules === undefined) {
+    param.rules = [];
+  }
+
+  var notMin;
+
   do {
-    var notMin = minimize_loop(hier);
+    notMin = minimize_loop(hier);
+
+    if (notMin)
+      param.rules.push(notMin);
 
   } while (notMin);
 
@@ -34,30 +49,30 @@ function minimize(str) {
   return str;
 }
 
-function minimize_loop(hier) {
+function minimize_loop(hier, param) {
   for ( var i = 0; i < minimize_list.length; i++) {
-    var notMin = minimize_recursive(hier, minimize_list[i]['func']);
+    var notMin = minimize_rec(hier, minimize_list[i]['func']);
 
     if (notMin) {
-      return notMin;
+      return minimize_list[i]['rule'];
     }
   }
   return null;
 }
 
-function minimize_recursive(hier, minFunc) {
-  var notMin = minFunc(hier);
+function minimize_rec(hier, minFunc) {
+  var minimized = minFunc(hier);
 
-  if (notMin) {
-    return notMin;
+  if (minimized) {
+    return minimized;
   }
 
   if (hier.key === types.MUL || hier.key === types.ADD) {
     for ( var i = 0; i < hier.val.length; i++) {
-      notMin = minimize_recursive(hier.val[i], minFunc);
+      minimized = minimize_rec(hier.val[i], minFunc);
 
-      if (notMin) {
-        return notMin;
+      if (minimized) {
+        return minimized;
       }
     }
   }
