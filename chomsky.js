@@ -1,4 +1,4 @@
-var types = {
+var keys = {
   ADD : 'add',
   MUL : 'mul',
   STAR : 'star',
@@ -23,12 +23,12 @@ function minimize(str) {
   return toStr(hier);
 }
 
-// (type) => type
+// (key) => key
 function minimize_01(hier) {
-  if (hier.type === types.MUL || hier.type === types.ADD) {
-    if (hier.items.length === 1) {
-      hier.type = hier.items[0].type;
-      copyObj(hier, hier.items[0]);
+  if (hier.key === keys.MUL || hier.key === keys.ADD) {
+    if (hier.val.length === 1) {
+      hier.key = hier.val[0].key;
+      copyObj(hier, hier.val[0]);
 
       return true;
     }
@@ -153,35 +153,35 @@ function forthComp(globArr) {
 
 function genAdd(sels) {
   return {
-    type : types.ADD,
-    items : sels
+    key : keys.ADD,
+    val : sels
   };
 }
 
 function genMul(els) {
   return {
-    type : types.MUL,
-    items : els
+    key : keys.MUL,
+    val : els
   };
 }
 
 function genStar(expr) {
   return {
-    type : types.STAR,
-    item : expr
+    key : keys.STAR,
+    val : expr
   };
 }
 
 function genAtom(atom) {
   return {
-    type : types.ATOM,
-    item : atom
+    key : keys.ATOM,
+    val : atom
   };
 }
 
 function genLam() {
   return {
-    type : types.LAM
+    key : keys.LAM
   };
 }
 
@@ -191,7 +191,7 @@ function RegexError(message, position) {
   this.position = position;
 }
 
-RegexError.prototype = new Error();
+RegexError.protokey = new Error();
 
 function removeObj(obj) {
   for ( var o in obj) {
@@ -212,31 +212,31 @@ function copyObj(obj, obj2) {
 }
 
 function toStr(hier) {
-  if (hier.type === types.ATOM) {
-    return hier.item;
+  if (hier.key === keys.ATOM) {
+    return hier.val;
 
-  } else if (hier.type === types.LAM) {
+  } else if (hier.key === keys.LAM) {
     return specs.LAMBDA;
 
-  } else if (hier.type === types.MUL) {
+  } else if (hier.key === keys.MUL) {
     var tempStr = "";
 
-    for ( var i = 0; i < hier.items.length; i++) {
-      tempStr += toStr(hier.items[i]);
+    for ( var i = 0; i < hier.val.length; i++) {
+      tempStr += toStr(hier.val[i]);
     }
     return tempStr;
 
-  } else if (hier.type === types.ADD) {
+  } else if (hier.key === keys.ADD) {
     var tempStr = "";
 
-    for ( var i = 0; i < hier.items.length; i++) {
+    for ( var i = 0; i < hier.val.length; i++) {
       if (tempStr !== "")
         tempStr += "+";
-      tempStr += toStr(hier.items[i]);
+      tempStr += toStr(hier.val[i]);
     }
     return "(" + tempStr + ")";
 
-  } else if (hier.type === types.STAR) {
-    return toStr(hier.item) + "*";
+  } else if (hier.key === keys.STAR) {
+    return toStr(hier.val) + "*";
   }
 }
