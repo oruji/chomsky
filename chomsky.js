@@ -19,7 +19,11 @@ function minimize(str) {
 
   } while (notMin);
 
-  return toStr(hier);
+  var str = toStr(hier);
+  if (str.startsWith("(") && str.endsWith(")"))
+    str = str.substring(1, str.length - 1);
+
+  return str;
 }
 
 function minimize_recursive(hier) {
@@ -238,7 +242,7 @@ function toStr(hier) {
       tempStr += toStr(hier.val[i]);
     }
 
-    return tempStr;
+    return "(" + tempStr + ")";
 
   } else if (hier.key === types.ADD) {
     var tempStr = "";
