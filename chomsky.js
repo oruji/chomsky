@@ -224,7 +224,7 @@ function toStr(hier) {
     for ( var i = 0; i < hier.items.length; i++) {
       tempStr += toStr(hier.items[i]);
     }
-    return "(" + tempStr + ")";
+    return tempStr;
 
   } else if (hier.type === types.ADD) {
     var tempStr = "";
@@ -239,6 +239,4 @@ function toStr(hier) {
   } else if (hier.type === types.STAR) {
     return toStr(hier.item) + "*";
   }
-
-  return;
 }

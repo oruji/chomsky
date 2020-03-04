@@ -8,17 +8,19 @@
     var inVar = $("#inVar").val();
 
     try {
-
-      var outVar = JSON.stringify(minimize(inVar), undefined, 2);
+      var outVar = minimize(inVar);
+      var outVar2 = JSON.stringify(toHier(inVar), undefined, 2);
 
     } catch (err) {
       $("#myError").text(err.message);
     }
 
     $("#outVar").text(outVar);
+    $("#outVar2").text(outVar2);
   }
 </script>
 <input type="text" id="inVar" value="a+a" />
 <button onclick="onClick()">Click</button>
 <p id="myError"></p>
 <pre id="outVar"></pre>
+<pre id="outVar2"></pre>
