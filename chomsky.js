@@ -20,13 +20,7 @@ function minimize(str) {
 
   } while (notMin);
 
-  minimize_01(hier);
-  minimize_01(hier);
-  minimize_01(hier);
-
-  minimize_01(hier);
-
-  return hier;
+  return toStr(hier);
 }
 
 // (type) => type
@@ -215,4 +209,36 @@ function copyObj(obj, obj2) {
       obj[o] = obj2[o];
     }
   }
+}
+
+function toStr(hier) {
+  if (hier.type === types.ATOM) {
+    return hier.item;
+
+  } else if (hier.type === types.LAM) {
+    return specs.LAMBDA;
+
+  } else if (hier.type === types.MUL) {
+    var tempStr = "";
+
+    for ( var i = 0; i < hier.items.length; i++) {
+      tempStr += toStr(hier.items[i]);
+    }
+    return "(" + tempStr + ")";
+
+  } else if (hier.type === types.ADD) {
+    var tempStr = "";
+
+    for ( var i = 0; i < hier.items.length; i++) {
+      if (tempStr !== "")
+        tempStr += "+";
+      tempStr += toStr(hier.items[i]);
+    }
+    return "(" + tempStr + ")";
+
+  } else if (hier.type === types.STAR) {
+    return toStr(hier.item) + "*";
+  }
+
+  return;
 }
