@@ -11,11 +11,13 @@ var specs = {
 
 var hier;
 
+var minimize_list = [ minimize_01 ];
+
 function minimize(str) {
   hier = toHier(str);
 
   do {
-    var notMin = minimize_recursive(hier);
+    var notMin = minimize_loop(hier);
 
   } while (notMin);
 
@@ -24,6 +26,16 @@ function minimize(str) {
     str = str.substring(1, str.length - 1);
 
   return str;
+}
+
+function minimize_loop(hier) {
+  for ( var i = 0; i < minimize_list.length; i++) {
+    var notMin = minimize_recursive(hier);
+
+    if (notMin) {
+      return notMin;
+    }
+  }
 }
 
 function minimize_recursive(hier) {
