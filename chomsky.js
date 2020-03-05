@@ -19,8 +19,6 @@ var minimize_list = [ {
   'func' : minimize_02
 } ];
 
-minimize_list.push(args);
-
 function minimize(str, param) {
   hier = toHier(str);
 
@@ -35,16 +33,14 @@ function minimize(str, param) {
   var notMin;
 
   do {
-    notMin = minimize_loop(hier);
+    notMin = minimize_loop(hier, param);
 
     if (notMin)
       param.rules.push(notMin);
 
   } while (notMin);
 
-  var str = toStr(hier);
-  if (str.startsWith("(") && str.endsWith(")"))
-    str = str.substring(1, str.length - 1);
+  var str = toStr_rec(hier);
 
   return str;
 }
@@ -284,17 +280,26 @@ function copyObj(obj, obj2) {
 }
 
 function toStr(hier) {
+  var str = toStr_rec(hier);
+
+  if (str.startsWith("(") && str.endsWith(")"))
+    str = str.substring(1, str.length - 1);
+
+  return str;
+}
+
+function toStr_rec(hier) {
   if (hier.key === types.ATOM) {
     return hier.val;
 
   } else if (hier.key === types.STAR) {
-    return toStr(hier.val) + "*";
+    return toStr_rec(hier.val) + "*";
 
   } else if (hier.key === types.MUL) {
     var tempStr = "";
 
     for ( var i = 0; i < hier.val.length; i++) {
-      tempStr += toStr(hier.val[i]);
+      tempStr += toStr_rec(hier.val[i]);
     }
 
     return "(" + tempStr + ")";
@@ -305,7 +310,7 @@ function toStr(hier) {
     for ( var i = 0; i < hier.val.length; i++) {
       if (tempStr !== "")
         tempStr += "+";
-      tempStr += toStr(hier.val[i]);
+      tempStr += toStr_rec(hier.val[i]);
     }
 
     return "(" + tempStr + ")";
