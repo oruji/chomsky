@@ -1,23 +1,40 @@
 var types = {
-  ADD : 'add',
-  MUL : 'mul',
-  STAR : 'star',
-  ATOM : 'atom'
+  ADD: 'add',
+  MUL: 'mul',
+  STAR: 'star',
+  ATOM: 'atom'
 };
 
 var specs = {
-  LAMBDA : '\u03BB'
+  LAMBDA: '\u03BB'
 };
 
 var hier;
 
-var minimize_list = [ {
-  'rule' : '(expr) => expr',
-  'func' : minimize_01
+var minimize_list = [{
+  'rule': '(expr) => expr',
+  'func': minimize_01
 }, {
-  'rule' : 'exprλ => expr',
-  'func' : minimize_02
-} ];
+  'rule': 'exprλ => expr',
+  'func': minimize_02
+}];
+
+function minimize_single(str, myFunc) {
+  hier = toHier(str);
+
+  var notMin;
+
+  do {
+    notMin = minimize_rec(hier, myFunc);
+    console.log(toStr(hier));
+    console.log(toStr(hier) === str);
+
+  } while (notMin);
+
+  var str = toStr_rec(hier);
+
+  return str;
+}
 
 function minimize(str, param) {
   hier = toHier(str);
@@ -46,7 +63,7 @@ function minimize(str, param) {
 }
 
 function minimize_loop(hier, param) {
-  for ( var i = 0; i < minimize_list.length; i++) {
+  for (var i = 0; i < minimize_list.length; i++) {
     var notMin = minimize_rec(hier, minimize_list[i]['func']);
 
     if (notMin) {
@@ -56,16 +73,16 @@ function minimize_loop(hier, param) {
   return null;
 }
 
-function minimize_rec(hier, minFunc) {
-  var minimized = minFunc(hier);
+function minimize_rec(hier, myFunc) {
+  var minimized = myFunc(hier);
 
   if (minimized) {
     return minimized;
   }
 
   if (hier.key === types.MUL || hier.key === types.ADD) {
-    for ( var i = 0; i < hier.val.length; i++) {
-      minimized = minimize_rec(hier.val[i], minFunc);
+    for (var i = 0; i < hier.val.length; i++) {
+      minimized = minimize_rec(hier.val[i], myFunc);
 
       if (minimized) {
         return minimized;
@@ -81,7 +98,7 @@ function minimize_02(hier) {
   if (hier.key === types.MUL && hier.val.length >= 2) {
     var lamIndex = -1;
 
-    for ( var i = 0; i < hier.val.length; i++) {
+    for (var i = 0; i < hier.val.length; i++) {
       if (hier.val[i].val === specs.LAMBDA) {
         lamIndex = i;
       }
@@ -115,7 +132,7 @@ function minimize_01(hier) {
 function toHier(str) {
   // convert string to array
   var arr = [];
-  for ( var i = 0; i < str.length; i++) {
+  for (var i = 0; i < str.length; i++) {
     arr.push(str[i]);
   }
 
@@ -138,10 +155,10 @@ function next() {
 }
 function genGlobArr(arr) {
   return {
-    arr : arr,
-    index : 0,
-    select : select,
-    next : next
+    arr: arr,
+    index: 0,
+    select: select,
+    next: next
   };
 }
 
@@ -174,7 +191,7 @@ function secondComp(globArr) {
   }
   if (items.length === 0) {
     throw new RegexError("empty add items subexpression at index "
-        + globArr.index, globArr.index);
+      + globArr.index, globArr.index);
   }
 
   return genMul(items);
@@ -197,7 +214,7 @@ function forthComp(globArr) {
 
     if (globArr.select() !== ")") {
       throw new RegexError("missing matching right parenthesis at "
-          + globArr.index, globArr.index);
+        + globArr.index, globArr.index);
     }
 
     globArr.next();
@@ -210,7 +227,7 @@ function forthComp(globArr) {
     return genAtom(specs.LAMBDA);
 
   } else if (globArr.select() === undefined || globArr.select() === "+"
-      || globArr.select() === ")") {
+    || globArr.select() === ")") {
 
     return undefined;
 
@@ -227,29 +244,29 @@ function forthComp(globArr) {
 
 function genAdd(sels) {
   return {
-    key : types.ADD,
-    val : sels
+    key: types.ADD,
+    val: sels
   };
 }
 
 function genMul(els) {
   return {
-    key : types.MUL,
-    val : els
+    key: types.MUL,
+    val: els
   };
 }
 
 function genStar(expr) {
   return {
-    key : types.STAR,
-    val : expr
+    key: types.STAR,
+    val: expr
   };
 }
 
 function genAtom(atom) {
   return {
-    key : types.ATOM,
-    val : atom
+    key: types.ATOM,
+    val: atom
   };
 }
 
@@ -262,7 +279,7 @@ function RegexError(message, position) {
 RegexError.protokey = new Error();
 
 function removeObj(obj) {
-  for ( var o in obj) {
+  for (var o in obj) {
     if (obj.hasOwnProperty(o)) {
       delete obj[o];
     }
@@ -298,7 +315,7 @@ function toStr_rec(hier) {
   } else if (hier.key === types.MUL) {
     var tempStr = "";
 
-    for ( var i = 0; i < hier.val.length; i++) {
+    for (var i = 0; i < hier.val.length; i++) {
       tempStr += toStr_rec(hier.val[i]);
     }
 
@@ -307,7 +324,7 @@ function toStr_rec(hier) {
   } else if (hier.key === types.ADD) {
     var tempStr = "";
 
-    for ( var i = 0; i < hier.val.length; i++) {
+    for (var i = 0; i < hier.val.length; i++) {
       if (tempStr !== "")
         tempStr += "+";
       tempStr += toStr_rec(hier.val[i]);

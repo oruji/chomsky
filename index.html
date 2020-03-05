@@ -15,6 +15,7 @@
       var outVar3 = param.rules.toString();
       var outVar4 = JSON.stringify(toHier(inVar), undefined, 2);
       var outVar5 = toStr_rec(toHier(inVar));
+      var outVar6 = minimize_single(inVar, minimize_01);
 
     } catch (err) {
       $("#myError").text(err.message);
@@ -25,12 +26,14 @@
     $("#outVar3").text(outVar3);
     $("#outVar4").text(outVar4);
     $("#outVar5").text(outVar5);
+    $("#outVar6").text(outVar6);
   }
 </script>
 <span>λ</span>
 <input type="text" id="inVar" value="a+a" />
 <button onclick="onClick()">Click</button>
 <p id="myError"></p>
+<pre id="outVar6"></pre>
 <pre id="outVar3"></pre>
 <div style="float: left">
   <pre id="outVar5"></pre>
