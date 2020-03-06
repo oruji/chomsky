@@ -80,15 +80,16 @@ function minimize_rec(hier, ruleFunc) {
 
 minimize_list.push({ 'rule': "(a) -> a", 'type': 'structure', 'func': minimize_01 });
 minimize_list.push({ 'rule': "λa -> a", 'type': 'structure', 'func': minimize_02 });
-minimize_list.push({ 'rule': "a+(b+c) -> a+b+c", 'type': 'structure', 'func': minimize_03 });
+minimize_list.push({ 'rule': "a+(b+c) -> a+b+c, a(bc) -> abc", 'type': 'structure', 'func': minimize_03 });
 
 // a+(b+c) -> a+b+c, Associative property
 function minimize_03(hier) {
-  if (hier.key === types.ADD && hier.val.length >= 2) {
+  if ((hier.key === types.ADD || hier.key === types.MUL)
+    && hier.val.length >= 2) {
     var found = -1, i;
 
     for (i = 0; i < hier.val.length; i++) {
-      if (hier.val[i].key === types.ADD) {
+      if (hier.val[i].key === hier.key) {
         found = i;
       }
     }
@@ -130,13 +131,12 @@ function minimize_02(hier) {
 
 // (a) -> a
 function minimize_01(hier) {
-  if (hier.key === types.MUL || hier.key === types.ADD) {
-    if (hier.val.length === 1) {
-      hier.key = hier.val[0].key;
+  if ((hier.key === types.MUL || hier.key === types.ADD)
+    && hier.val.length === 1) {
+    hier.key = hier.val[0].key;
 
-      delAndCopy(hier, hier.val[0]);
-      return true;
-    }
+    delAndCopy(hier, hier.val[0]);
+    return true;
   }
 
   return false;
