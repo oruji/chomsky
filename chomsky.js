@@ -97,9 +97,34 @@ function minimize_step(regex) {
   return [result, param.rulesDone];
 }
 
+minimize_list.push({ 'func': minimize_04, 'rule': "a+a -> a", 'type': '' });
 minimize_list.push({ 'func': minimize_03, 'rule': "a+(b+c) -> a+b+c, a(bc) -> abc", 'type': '' });
 minimize_list.push({ 'func': minimize_02, 'rule': "λa -> a", 'type': '' });
 minimize_list.push({ 'func': minimize_01, 'rule': "(a) -> a", 'type': '' });
+
+// a+a -> a
+function minimize_04(hier) {
+  if (hier.key === types.ADD && hier.val.length >= 2) {
+    for (var i = 0; i < hier.val.length - 1; i++) {
+      var found = -1;
+
+      for (var j = i + 1; j < hier.val.length; j++) {
+        if (equals(hier.val[i], hier.val[j])) {
+          found = j;
+          break;
+        }
+      }
+
+      if (found >= 0) {
+        hier.val.splice(found, 1);
+
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
 
 // a+(b+c) -> a+b+c, a(bc) -> abc, Associative property
 function minimize_03(hier) {
@@ -445,3 +470,59 @@ function strMinimize(str, loopNo, rulesDone) {
 
   return toString(hierMinimized);
 }
+
+function equals(obj1, obj2) {
+  if (obj1 === obj2) {
+    return true;
+  }
+
+  if (obj1 instanceof Date && obj2 instanceof Date) {
+    return obj1.getTime() === obj2.getTime();
+  }
+
+  if (obj1 instanceof RegExp && obj2 instanceof RegExp) {
+    return obj1.source === obj2.source &&
+      obj1.global === obj2.global &&
+      obj1.multiline === obj2.multiline &&
+      obj1.lastIndex === obj2.lastIndex &&
+      obj1.ignoreCase === obj2.ignoreCase;
+  }
+
+  if (!(obj1 instanceof Object) || !(obj2 instanceof Object)) {
+    return false;
+  }
+
+  if (typeof obj1 === 'undefined' || typeof obj2 === 'undefined') {
+    return false;
+  }
+
+  if (obj1.constructor !== obj2.constructor) {
+    return false;
+  }
+
+  for (var p in obj1) {
+    if (!(p in obj2)) {
+      return false;
+    }
+
+    if (obj1[p] === obj2[p]) {
+      continue;
+    }
+
+    if (typeof (obj1[p]) !== "object") {
+      return false;
+    }
+
+    if (!(equals(obj1[p], obj2[p]))) {
+      return false;
+    }
+  }
+
+  for (p in obj2) {
+    if (!(p in obj1)) {
+      return false;
+    }
+  }
+
+  return true;
+};
