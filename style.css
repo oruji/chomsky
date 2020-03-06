@@ -42,3 +42,23 @@
 .rule {
   color: #cbffee;
 }
+
+.minimum {
+  background: #feffa9;
+}
+
+.button {
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin-top: 6px;
+}
+
+.lambda {
+  font-weight: bold;
+  background: #fdf6a0;
+  padding-left: 3px;
+  padding-right: 3px;
+  border-radius: 5px;
+}

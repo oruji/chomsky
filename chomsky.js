@@ -1,40 +1,39 @@
 var minimize_list = [];
 
 function minimize(hier, param) {
-  var hierClone = JSON.parse(JSON.stringify(hier));
-
+  var hierCopy = JSON.parse(JSON.stringify(hier));
 
   if (param === undefined) {
     param = {};
   }
 
-  var opts = JSON.parse(JSON.stringify(param));
+  var paramCopy = JSON.parse(JSON.stringify(param));
 
-  if (opts.loopNo === undefined) {
-    opts.loopNo = null;
+  if (paramCopy.loopNo === undefined) {
+    paramCopy.loopNo = null;
   }
 
-  if (opts.rulesDone === undefined) {
-    opts.rulesDone = null;
+  if (paramCopy.rulesDone === undefined) {
+    paramCopy.rulesDone = null;
 
   } else {
-    opts.rulesDone = param.rulesDone;
+    paramCopy.rulesDone = param.rulesDone;
   }
 
   var ruleDone = "temp";
   var counter = 0;
 
-  while (ruleDone !== null && (opts.loopNo === null || counter < opts.loopNo)) {
-    ruleDone = minimize_loop(hierClone);
+  while (ruleDone !== null && (paramCopy.loopNo === null || counter < paramCopy.loopNo)) {
+    ruleDone = minimize_loop(hierCopy);
 
-    if (ruleDone !== null && opts.rulesDone !== null) {
-      opts.rulesDone.push(ruleDone);
+    if (ruleDone !== null && paramCopy.rulesDone !== null) {
+      paramCopy.rulesDone.push(ruleDone);
     }
 
     counter += 1;
   }
 
-  return hierClone;
+  return hierCopy;
 }
 
 function minimize_loop(hier) {
@@ -78,11 +77,31 @@ function minimize_rec(hier, ruleFunc) {
   return false;
 }
 
-minimize_list.push({ 'rule': "(a) -> a", 'type': 'structure', 'func': minimize_01 });
-minimize_list.push({ 'rule': "λa -> a", 'type': 'structure', 'func': minimize_02 });
-minimize_list.push({ 'rule': "a+(b+c) -> a+b+c, a(bc) -> abc", 'type': 'structure', 'func': minimize_03 });
+function minimize_step(regex) {
+  var param = { loopNo: 1, rulesDone: [] };
+  var result = strMinimize(regex, param);
+  var lastRuleNo = param.rulesDone.length;
 
-// a+(b+c) -> a+b+c, Associative property
+  while (result === regex) {
+    param.loopNo += 1;
+    param.rulesDone = [];
+    result = strMinimize(regex, param);
+
+    if (param.rulesDone.length === 0 ||
+      param.rulesDone.length === lastRuleNo)
+      break;
+
+    lastRuleNo = param.rulesDone.length;
+  }
+
+  return [result, param.rulesDone];
+}
+
+minimize_list.push({ 'func': minimize_03, 'rule': "a+(b+c) -> a+b+c, a(bc) -> abc", 'type': '' });
+minimize_list.push({ 'func': minimize_02, 'rule': "λa -> a", 'type': '' });
+minimize_list.push({ 'func': minimize_01, 'rule': "(a) -> a", 'type': '' });
+
+// a+(b+c) -> a+b+c, a(bc) -> abc, Associative property
 function minimize_03(hier) {
   if ((hier.key === types.ADD || hier.key === types.MUL)
     && hier.val.length >= 2) {
