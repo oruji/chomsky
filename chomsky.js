@@ -1,99 +1,101 @@
-var types = {
-  ADD: 'add',
-  MUL: 'mul',
-  STAR: 'star',
-  ATOM: 'atom'
-};
+var minimize_list = [];
 
-var specs = {
-  LAMBDA: '\u03BB'
-};
+function minimize(hier, param) {
+  var hierClone = JSON.parse(JSON.stringify(hier));
 
-var hier;
-
-var minimize_list = [{
-  'rule': '(expr) => expr',
-  'func': minimize_01
-}, {
-  'rule': 'exprλ => expr',
-  'func': minimize_02
-}];
-
-function minimize_single(str, myFunc) {
-  hier = toHier(str);
-
-  var notMin;
-
-  do {
-    notMin = minimize_rec(hier, myFunc);
-    console.log(toStr(hier));
-    console.log(toStr(hier) === str);
-
-  } while (notMin);
-
-  var str = toStr_rec(hier);
-
-  return str;
-}
-
-function minimize(str, param) {
-  hier = toHier(str);
 
   if (param === undefined) {
     param = {};
   }
 
-  if (param.rules === undefined) {
-    param.rules = [];
+  var opts = JSON.parse(JSON.stringify(param));
+
+  if (opts.loopNo === undefined) {
+    opts.loopNo = null;
   }
 
-  var notMin;
+  if (opts.rulesDone === undefined) {
+    opts.rulesDone = null;
 
-  do {
-    notMin = minimize_loop(hier, param);
+  } else {
+    opts.rulesDone = param.rulesDone;
+  }
 
-    if (notMin)
-      param.rules.push(notMin);
+  var ruleDone = "temp";
+  var counter = 0;
 
-  } while (notMin);
+  while (ruleDone !== null && (opts.loopNo === null || counter < opts.loopNo)) {
+    ruleDone = minimize_loop(hierClone);
 
-  var str = toStr_rec(hier);
+    if (ruleDone !== null && opts.rulesDone !== null) {
+      opts.rulesDone.push(ruleDone);
+    }
 
-  return str;
+    counter += 1;
+  }
+
+  return hierClone;
 }
 
-function minimize_loop(hier, param) {
-  for (var i = 0; i < minimize_list.length; i++) {
-    var notMin = minimize_rec(hier, minimize_list[i]['func']);
+function minimize_loop(hier) {
+  var pattern = null;
+  var result = null;
 
-    if (notMin) {
-      return minimize_list[i]['rule'];
+  for (var i = 0; i < minimize_list.length; i++) {
+    pattern = minimize_list[i];
+
+    result = minimize_rec(hier, pattern['func']);
+
+    if (result) {
+      return pattern.rule;
     }
   }
+
   return null;
 }
 
-function minimize_rec(hier, myFunc) {
-  var minimized = myFunc(hier);
+function minimize_rec(hier, ruleFunc) {
+  var ruleDone = ruleFunc(hier);
 
-  if (minimized) {
-    return minimized;
+  if (ruleDone) {
+    return ruleDone;
   }
 
-  if (hier.key === types.MUL || hier.key === types.ADD) {
-    for (var i = 0; i < hier.val.length; i++) {
-      minimized = minimize_rec(hier.val[i], myFunc);
+  var childArr = [];
 
-      if (minimized) {
-        return minimized;
-      }
+  if (hier.key === types.ADD || hier.key === types.MUL || hier.key === types.STAR) {
+    childArr = hier.val;
+  }
+
+  for (var i = 0; i < childArr.length; i++) {
+    ruleDone = minimize_rec(childArr[i], ruleFunc);
+
+    if (ruleDone) {
+      return ruleDone;
     }
   }
 
   return false;
 }
 
-// exprλ => expr
+minimize_list.push({ 'rule': "(expr) => expr", 'type': 'structure', 'func': minimize_01 });
+minimize_list.push({ 'rule': "λexpr => expr", 'type': 'structure', 'func': minimize_02 });
+
+// (expr) => expr
+function minimize_01(hier) {
+  if (hier.key === types.MUL || hier.key === types.ADD) {
+    if (hier.val.length === 1) {
+      hier.key = hier.val[0].key;
+
+      delAndCopy(hier, hier.val[0]);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// λexpr => expr
 function minimize_02(hier) {
   if (hier.key === types.MUL && hier.val.length >= 2) {
     var lamIndex = -1;
@@ -106,7 +108,6 @@ function minimize_02(hier) {
 
     if (lamIndex >= 0) {
       hier.val.splice(lamIndex, 1);
-
       return true;
     }
   }
@@ -114,38 +115,119 @@ function minimize_02(hier) {
   return false;
 }
 
-// (expr) => expr, mul & add with len=1 are not mull & add
-function minimize_01(hier) {
-  if (hier.key === types.MUL || hier.key === types.ADD) {
-    if (hier.val.length === 1) {
-      hier.key = hier.val[0].key;
-      copyObj(hier, hier.val[0]);
+var types = {
+  ADD: 'add',
+  MUL: 'mul',
+  STAR: 'star',
+  ATOM: 'atom',
+};
 
-      return true;
+var specs = {
+  LAMBDA: '\u03BB'
+};
+
+function delAndCopy(o1, o2) {
+  var p;
+
+  for (p in o1) {
+    if (o1.hasOwnProperty(p)) {
+      delete o1[p];
     }
   }
 
-  return false;
+  for (p in o2) {
+    if (o2.hasOwnProperty(p)) {
+      o1[p] = o2[p];
+    }
+  }
 }
 
-// convert String to Hierarchical Structure
-function toHier(str) {
-  // convert string to array
+function genType(type, item) {
+  return {
+    key: type,
+    val: item
+  };
+}
+
+var _prec = {};
+_prec[types.ADD] = 0;
+_prec[types.MUL] = 1;
+_prec[types.STAR] = 2;
+_prec[types.ATOM] = 3;
+
+function needParens(par, child) {
+  return _prec[par.key] >= _prec[child.key];
+}
+
+function _optParenToArray(par, child, arr) {
+  var parens = needParens(par, child);
+
+  if (parens) {
+    arr.push("(");
+  }
+  _dispatchToArray(child, arr);
+
+  if (parens) {
+    arr.push(")");
+  }
+}
+
+function _binOpToArray(regex, arr, parts, operand) {
+  for (var i = 0; i < parts.length; i++) {
+    if (operand !== undefined && i > 0) {
+      arr.push(operand);
+    }
+    _optParenToArray(regex, parts[i], arr);
+  }
+}
+
+function addToArray(regex, arr) {
+  _binOpToArray(regex, arr, regex.val, "+");
+}
+
+function mulToArray(regex, arr) {
+  _binOpToArray(regex, arr, regex.val);
+}
+
+function starToArray(regex, arr) {
+  _optParenToArray(regex, regex.val, arr);
+  arr.push("*");
+}
+
+function atomToArray(regex, arr) {
+  arr.push(regex.val);
+}
+
+var _toArrayFuns = {};
+_toArrayFuns[types.ADD] = addToArray;
+_toArrayFuns[types.MUL] = mulToArray;
+_toArrayFuns[types.STAR] = starToArray;
+_toArrayFuns[types.ATOM] = atomToArray;
+
+function _dispatchToArray(regex, arr) {
+  return _toArrayFuns[regex.key](regex, arr);
+}
+
+function toArray(regex) {
   var arr = [];
-  for (var i = 0; i < str.length; i++) {
-    arr.push(str[i]);
-  }
-
-  // generate hierarchical structure
-  if (arr.length === 0) {
-    return genMul([]);
-  }
-
-  var globArr = genGlobArr(arr);
-  var hier = firstComp(globArr);
-
-  return hier;
+  _dispatchToArray(regex, arr);
+  return arr;
 }
+
+function toString(regex) {
+  var arr = toArray(regex);
+  var str = arr.join("");
+
+  return str;
+}
+
+function RegError(message, position) {
+  this.name = "RegError";
+  this.message = message;
+  this.position = position;
+}
+
+RegError.prototype = new Error();
 
 function select() {
   return this.arr[this.index];
@@ -162,10 +244,27 @@ function genGlobArr(arr) {
   };
 }
 
+function arrToHier(arr) {
+  if (arr.length === 0) {
+    return genType(types.MUL, []);
+  }
+
+  var globArr = genGlobArr(arr);
+  var result = firstComp(globArr);
+
+  if (globArr.select() !== undefined) {
+    throw new RegError("Unexpected regex array: successfully parsed up to position " + globArr.index, globArr.index);
+  }
+
+  return result;
+}
+
 function firstComp(globArr) {
-  var items = [];
+  var concats = [];
+
   while (true) {
-    items.push(secondComp(globArr));
+    concats.push(secondComp(globArr));
+
     if (globArr.select() === "+") {
       globArr.next();
     } else {
@@ -173,11 +272,11 @@ function firstComp(globArr) {
     }
   }
 
-  return genAdd(items);
+  return genType(types.ADD, concats);
 }
 
 function secondComp(globArr) {
-  var items = [];
+  var itemArr = [];
   var item;
 
   while (true) {
@@ -187,24 +286,26 @@ function secondComp(globArr) {
       break;
     }
 
-    items.push(item);
-  }
-  if (items.length === 0) {
-    throw new RegexError("empty add items subexpression at index "
-      + globArr.index, globArr.index);
+    itemArr.push(item);
   }
 
-  return genMul(items);
+  if (itemArr.length === 0) {
+    throw new RegError("Unexpected regex array: empty choice subexpression at index " +
+      globArr.index, globArr.index);
+  }
+
+  return genType(types.MUL, itemArr);
 }
 
 function thirdComp(globArr) {
-  var item = forthComp(globArr);
+  var atom = forthComp(globArr);
 
   if (globArr.select() === "*") {
     globArr.next();
-    item = genStar(item);
+    atom = genType(types.STAR, atom);
   }
-  return item;
+
+  return atom;
 }
 
 function forthComp(globArr) {
@@ -213,8 +314,8 @@ function forthComp(globArr) {
     var expr = firstComp(globArr);
 
     if (globArr.select() !== ")") {
-      throw new RegexError("missing matching right parenthesis at "
-        + globArr.index, globArr.index);
+      throw new RegError("Unexpected regex array: missing matching right parenthesis at index " +
+        globArr.index, globArr.index);
     }
 
     globArr.next();
@@ -223,113 +324,78 @@ function forthComp(globArr) {
 
   } else if (globArr.select() === specs.LAMBDA) {
     globArr.next();
+    return genType(types.ATOM, specs.LAMBDA);
 
-    return genAtom(specs.LAMBDA);
-
-  } else if (globArr.select() === undefined || globArr.select() === "+"
-    || globArr.select() === ")") {
-
+  } else if (globArr.select() === undefined || globArr.select() === "+" ||
+    globArr.select() === ")") {
     return undefined;
 
   } else if (globArr.select() === "*") {
-    throw new RegexError("empty before star at " + globArr.index, globArr.index);
+    throw new RegError("Unexpected regex array: empty subexpression before Kleene star at index " +
+      globArr.index, globArr.index);
 
   } else {
-    var item = genAtom(globArr.select());
+    var sym = genType(types.ATOM, globArr.select());
     globArr.next();
 
-    return item;
+    return sym;
   }
 }
 
-function genAdd(sels) {
-  return {
-    key: types.ADD,
-    val: sels
-  };
+function arrMinimize(arr, loopNo, rulesDone) {
+  var hier = arrToHier(arr);
+  var hierSimplified = minimize(hier, loopNo, rulesDone);
+
+  return toArray(hierSimplified);
 }
 
-function genMul(els) {
-  return {
-    key: types.MUL,
-    val: els
-  };
-}
+var strEscapable = "λ+*()\\";
 
-function genStar(expr) {
-  return {
-    key: types.STAR,
-    val: expr
-  };
-}
+function strToArray(str) {
+  var arr = [];
+  var escaped = false;
+  var chr;
 
-function genAtom(atom) {
-  return {
-    key: types.ATOM,
-    val: atom
-  };
-}
+  for (var i = 0; i < str.length; ++i) {
+    if (escaped) {
+      if (strEscapable.indexOf(str[i]) === -1) {
+        throw new RegError("Unexpected string regex: illegal escape sequence \\" + str[i], i);
+      }
+      arr.push(str[i]);
+      escaped = false;
 
-function RegexError(message, position) {
-  this.name = "RegexError";
-  this.message = message;
-  this.position = position;
-}
+    } else if (str[i] === '\\') {
+      escaped = true;
 
-RegexError.protokey = new Error();
+    } else {
+      chr = str[i];
 
-function removeObj(obj) {
-  for (var o in obj) {
-    if (obj.hasOwnProperty(o)) {
-      delete obj[o];
+      switch (chr) {
+        case "λ": chr = specs.LAMBDA; break;
+        case "+": chr = "+"; break;
+        case "*": chr = "*"; break;
+        case "(": chr = "("; break;
+        case ")": chr = ")"; break;
+      }
+      arr.push(chr);
     }
   }
-}
-
-function copyObj(obj, obj2) {
-  removeObj(obj);
-
-  for (o in obj2) {
-    if (obj2.hasOwnProperty(o)) {
-      obj[o] = obj2[o];
-    }
+  if (escaped) {
+    throw new RegError("Unexpected string regex: unfinished escape sequence at end of string", str.length - 1);
   }
+
+  return arr;
 }
 
-function toStr(hier) {
-  var str = toStr_rec(hier);
+function strToHier(str) {
+  var arr = strToArray(str);
 
-  if (str.startsWith("(") && str.endsWith(")"))
-    str = str.substring(1, str.length - 1);
-
-  return str;
+  return arrToHier(arr);
 }
 
-function toStr_rec(hier) {
-  if (hier.key === types.ATOM) {
-    return hier.val;
+function strMinimize(str, loopNo, rulesDone) {
+  var hier = strToHier(str);
+  var hierMinimized = minimize(hier, loopNo, rulesDone);
 
-  } else if (hier.key === types.STAR) {
-    return toStr_rec(hier.val) + "*";
-
-  } else if (hier.key === types.MUL) {
-    var tempStr = "";
-
-    for (var i = 0; i < hier.val.length; i++) {
-      tempStr += toStr_rec(hier.val[i]);
-    }
-
-    return "(" + tempStr + ")";
-
-  } else if (hier.key === types.ADD) {
-    var tempStr = "";
-
-    for (var i = 0; i < hier.val.length; i++) {
-      if (tempStr !== "")
-        tempStr += "+";
-      tempStr += toStr_rec(hier.val[i]);
-    }
-
-    return "(" + tempStr + ")";
-  }
+  return toString(hierMinimized);
 }

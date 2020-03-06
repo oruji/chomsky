@@ -1,45 +1,60 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="stylesheet" href="style.css" />
-<script
-  src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="chomsky.js"></script>
 <script>
   function onClick() {
     $("#myError").text("");
+    $("#outVar").html("");
+
     var inVar = $("#inVar").val();
 
     try {
-      var param = {};
-      param.rules = [];
-      var outVar = minimize(inVar, param);
-      var outVar2 = JSON.stringify(hier, undefined, 2);
-      var outVar3 = param.rules.toString();
-      var outVar4 = JSON.stringify(toHier(inVar), undefined, 2);
-      var outVar5 = toStr_rec(toHier(inVar));
-      var outVar6 = minimize_single(inVar, minimize_01);
 
+      var outVar2 = JSON.stringify(minimize(strToHier(inVar)), undefined, 2);
+      $("#outVar2").text(outVar2);
+
+      if (strMinimize(inVar) === inVar) {
+        $("#outVar").text(inVar);
+        return;
+      }
+
+      while (!(strMinimize(inVar) === inVar)) {
+        var outVar = minimize_step(inVar);
+
+        $("#outVar").append(inVar + " -> Rule: (" + outVar[1][outVar[1].length - 1] + ")<br />");
+        $("#outVar").append(outVar[0] + "<hr />");
+
+        inVar = outVar[0];
+      }
     } catch (err) {
       $("#myError").text(err.message);
     }
+  }
 
-    $("#outVar").text(outVar);
-    $("#outVar2").text(outVar2);
-    $("#outVar3").text(outVar3);
-    $("#outVar4").text(outVar4);
-    $("#outVar5").text(outVar5);
-    $("#outVar6").text(outVar6);
+  function minimize_step(regex) {
+    var param = { loopNo: 1, rulesDone: [] };
+    var result = strMinimize(regex, param);
+    var lastRuleNo = param.rulesDone.length;
+
+    while (result === regex) {
+      param.loopNo += 1;
+      param.rulesDone = [];
+      result = strMinimize(regex, param);
+
+      if (param.rulesDone.length === 0 ||
+        param.rulesDone.length === lastRuleNo)
+        break;
+
+      lastRuleNo = param.rulesDone.length;
+    }
+
+    return [result, param.rulesDone];
   }
 </script>
-<span>λ</span>
-<input type="text" id="inVar" value="a+a" />
+
+<input id="inVar" value="(a)(a)aλaλ+λ" type="text" />
 <button onclick="onClick()">Click</button>
 <p id="myError"></p>
-<pre id="outVar6"></pre>
-<pre id="outVar3"></pre>
-<div style="float: left">
-  <pre id="outVar5"></pre>
-  <pre id="outVar4"></pre>
-</div>
-<div style="float: left">
-  <pre id="outVar"></pre>
-  <pre id="outVar2"></pre>
-</div>
+<pre id="outVar"></pre>
+<pre id="outVar2"></pre>
