@@ -78,16 +78,29 @@ function minimize_rec(hier, ruleFunc) {
   return false;
 }
 
-minimize_list.push({ 'rule': "(expr) => expr", 'type': 'structure', 'func': minimize_01 });
-minimize_list.push({ 'rule': "λexpr => expr", 'type': 'structure', 'func': minimize_02 });
+minimize_list.push({ 'rule': "(a) -> a", 'type': 'structure', 'func': minimize_01 });
+minimize_list.push({ 'rule': "λa -> a", 'type': 'structure', 'func': minimize_02 });
+minimize_list.push({ 'rule': "a+(b+c) -> a+b+c", 'type': 'structure', 'func': minimize_03 });
 
-// (expr) => expr
-function minimize_01(hier) {
-  if (hier.key === types.MUL || hier.key === types.ADD) {
-    if (hier.val.length === 1) {
-      hier.key = hier.val[0].key;
+// a+(b+c) -> a+b+c, Associative property
+function minimize_03(hier) {
+  if (hier.key === types.ADD && hier.val.length >= 2) {
+    var found = -1, i;
 
-      delAndCopy(hier, hier.val[0]);
+    for (i = 0; i < hier.val.length; i++) {
+      if (hier.val[i].key === types.ADD) {
+        found = i;
+      }
+    }
+
+    if (found >= 0) {
+      var node = hier.val[found];
+      hier.val.splice(found, 1);
+
+      for (i = 0; i < node.val.length; i++) {
+        hier.val.splice(found + i, 0, node.val[i]);
+      }
+
       return true;
     }
   }
@@ -95,7 +108,7 @@ function minimize_01(hier) {
   return false;
 }
 
-// λexpr => expr
+// λa -> a
 function minimize_02(hier) {
   if (hier.key === types.MUL && hier.val.length >= 2) {
     var lamIndex = -1;
@@ -108,6 +121,20 @@ function minimize_02(hier) {
 
     if (lamIndex >= 0) {
       hier.val.splice(lamIndex, 1);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// (a) -> a
+function minimize_01(hier) {
+  if (hier.key === types.MUL || hier.key === types.ADD) {
+    if (hier.val.length === 1) {
+      hier.key = hier.val[0].key;
+
+      delAndCopy(hier, hier.val[0]);
       return true;
     }
   }
