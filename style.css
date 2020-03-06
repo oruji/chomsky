@@ -1,20 +1,44 @@
 * {
-font-family: consolas;
-font-size: 15px;
+  font-family: consolas;
+  font-size: 15px;
 }
+
 #myError {
-color:red;
+  color: red;
 }
 
 [id^="outVar"] {
-    font-weight: bold;
-    border-radius: 5px;
-    background: aliceblue;
-	border-style: groove;
+  font-weight: bold;
+  border-radius: 5px;
+  background: aliceblue;
+  border-style: groove;
 }
 
 #inVar {
-  width:100%;
+  width: 100%;
 }
 
+.emph {
+  color: #d80000;
+  background: #ffd4d4;
+}
 
+.emphG {
+  font-weight: bold;
+  color: #0f5402;
+  background: #95ff81;
+  border-radius: 3px;
+}
+
+.emphW {
+  color: aliceblue;
+}
+
+.ruleTitle {
+  background: #4c647d;
+  color: #ebe9ff;
+}
+
+.rule {
+  color: #cbffee;
+}

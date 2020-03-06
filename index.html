@@ -2,6 +2,7 @@
 <link rel="stylesheet" href="style.css" />
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="chomsky.js"></script>
+<script src="http://kpdecker.github.io/jsdiff/diff.js"></script>
 <script>
   function onClick() {
     $("#myError").text("");
@@ -9,27 +10,39 @@
 
     var inVar = $("#inVar").val();
 
+    var minimum = strMinimize(inVar);
+
     try {
-
-      var outVar2 = JSON.stringify(minimize(strToHier(inVar)), undefined, 2);
-      $("#outVar2").text(outVar2);
-
-      if (strMinimize(inVar) === inVar) {
-        $("#outVar").text(inVar);
-        return;
-      }
-
-      while (!(strMinimize(inVar) === inVar)) {
+      var counter = 1;
+      while (!(minimum === inVar)) {
         var outVar = minimize_step(inVar);
 
-        $("#outVar").append(inVar + " -> Rule: (" + outVar[1][outVar[1].length - 1] + ")<br />");
-        $("#outVar").append(outVar[0] + "<hr />");
+        var source = $('<span>' + inVar + '</span>');
+        var result = $('<span>' + outVar[0] + '</span>');
+
+        colorize(source, result);
+
+        // fix (b)) => b) wrong colorize
+        while (source.html().split(")<font class=\"emph\">)</font>").length > 1) {
+          source.html(source.html().split(")<font class=\"emph\">)</font>").join("<font class=\"emph\">)</font>)"));
+        }
+
+        $("#outVar").append("<div class=\"ruleTitle\">" + counter + ") Rule: <span class='rule'>" + outVar[1][outVar[1].length - 1] + "</span></div>");
+        $("#outVar").append(source);
+        $("#outVar").append("<br />");
+        // this line is source with bg white color diff
+        $("#outVar").append(source.html().split("emph").join("emphW") + "<br />");
+        $("#outVar").append(result);
+        $("#outVar").append("<hr />");
 
         inVar = outVar[0];
+        counter++;
       }
     } catch (err) {
       $("#myError").text(err.message);
     }
+
+    $("#outVar").append(minimum);
   }
 
   function minimize_step(regex) {
@@ -51,10 +64,40 @@
 
     return [result, param.rulesDone];
   }
+
+  // diff color
+  function colorize(source, result) {
+    // var source = $("#first");
+    // var result = $("#second");
+    var sourceText = source.text();
+    var resultText = result.text();
+
+    var diff = JsDiff.diffChars(sourceText, resultText);
+
+    colorDiv(source, diff, "removed", "emph");
+    colorDiv(result, diff, "added", "emphG");
+  }
+
+  function colorDiv(div, parts, type, cssClass) {
+    var out = "";
+    var shouldBeTrueOrUndefined = type;
+    var mustBeUndefined = type === "added" ? "removed" : "added";
+
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i][mustBeUndefined] === undefined) {
+        if (parts[i][shouldBeTrueOrUndefined] === undefined) {
+          out += parts[i].value;
+        } else {
+          out += '<font class="' + cssClass + '">' + parts[i].value + '</font>';
+        }
+      }
+    }
+
+    div.html(out);
+  }
 </script>
 
 <input id="inVar" value="(a)(a)aλaλ+λ" type="text" />
-<button onclick="onClick()">Click</button>
+<button onclick="onClick()">Minimize</button>
 <p id="myError"></p>
 <pre id="outVar"></pre>
-<pre id="outVar2"></pre>
