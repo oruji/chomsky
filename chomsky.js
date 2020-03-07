@@ -1,3 +1,14 @@
+var types = {
+  ADD: 'add',
+  MUL: 'mul',
+  STAR: 'star',
+  ATOM: 'atom',
+};
+
+var specs = {
+  LAMBDA: '\u03BB'
+};
+
 var minimize_list = [];
 
 function minimize(hier, param) {
@@ -97,20 +108,46 @@ function minimize_step(regex) {
   return [result, param.rulesDone];
 }
 
-minimize_list.push({ 'func': minimize_04, 'rule': "a+a -> a", 'type': '' });
-minimize_list.push({ 'func': minimize_03, 'rule': "a+(b+c) -> a+b+c, a(bc) -> abc", 'type': '' });
-minimize_list.push({ 'func': minimize_02, 'rule': "λa -> a", 'type': '' });
-minimize_list.push({ 'func': minimize_01, 'rule': "(a) -> a", 'type': '' });
+minimize_list.push({ 'func': minimize_05, 'rule': "λ+A* -> A*", 'type': '' });
+minimize_list.push({ 'func': minimize_04, 'rule': "A+A -> A", 'type': '' });
+minimize_list.push({ 'func': minimize_03, 'rule': "A+(B+C) -> A+B+C, A(BC) -> ABC", 'type': '' });
+minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
+minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
 
-// a+a -> a
+// λ+A* -> A*
+function minimize_05(hier) {
+  if (hier.key === types.ADD && hier.val.length >= 2) {
+    var myLam = -1;
+    var myStar = -1;
+
+    for (var i = 0; i < hier.val.length; i++) {
+      if (hier.val[i].key === types.STAR) {
+        myStar = i;
+
+      } else if (hier.val[i].val === specs.LAMBDA) {
+        myLam = i;
+      }
+
+      if (myStar >= 0 && myLam >= 0) {
+        hier.val.splice(myLam, 1);
+
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// A+A -> A
 function minimize_04(hier) {
   if (hier.key === types.ADD && hier.val.length >= 2) {
     for (var i = 0; i < hier.val.length - 1; i++) {
       var found = -1;
 
       for (var j = i + 1; j < hier.val.length; j++) {
-        if (equals(hier.val[i], hier.val[j])) {
-          found = j;
+        if (areEqual(hier.val[i], hier.val[j])) {
+          found = i;
           break;
         }
       }
@@ -126,7 +163,7 @@ function minimize_04(hier) {
   return false;
 }
 
-// a+(b+c) -> a+b+c, a(bc) -> abc, Associative property
+// A+(B+C) -> A+B+C, A(BC) -> ABC, Associative property
 function minimize_03(hier) {
   if ((hier.key === types.ADD || hier.key === types.MUL)
     && hier.val.length >= 2) {
@@ -153,7 +190,7 @@ function minimize_03(hier) {
   return false;
 }
 
-// λa -> a
+// λA -> A
 function minimize_02(hier) {
   if (hier.key === types.MUL && hier.val.length >= 2) {
     var lamIndex = -1;
@@ -173,7 +210,7 @@ function minimize_02(hier) {
   return false;
 }
 
-// (a) -> a
+// (A) -> A
 function minimize_01(hier) {
   if ((hier.key === types.MUL || hier.key === types.ADD)
     && hier.val.length === 1) {
@@ -185,17 +222,6 @@ function minimize_01(hier) {
 
   return false;
 }
-
-var types = {
-  ADD: 'add',
-  MUL: 'mul',
-  STAR: 'star',
-  ATOM: 'atom',
-};
-
-var specs = {
-  LAMBDA: '\u03BB'
-};
 
 function delAndCopy(o1, o2) {
   var p;
@@ -471,7 +497,7 @@ function strMinimize(str, loopNo, rulesDone) {
   return toString(hierMinimized);
 }
 
-function equals(obj1, obj2) {
+function areEqual(obj1, obj2) {
   if (obj1 === obj2) {
     return true;
   }
@@ -513,7 +539,7 @@ function equals(obj1, obj2) {
       return false;
     }
 
-    if (!(equals(obj1[p], obj2[p]))) {
+    if (!(areEqual(obj1[p], obj2[p]))) {
       return false;
     }
   }
