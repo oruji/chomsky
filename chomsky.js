@@ -117,29 +117,32 @@ minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
 
 // λ+AA* => A*
 function minimize_06(hier) {
-  if (hier.key === types.ADD && hier.val.length >= 2) {
+  if (isAdd(hier) && hier.val.length >= 2) {
     var lamIndex = -1;
     var starIndex = -1;
     var sameStar = -1;
     var elemIndex = -1;
 
     for (var i = 0; i < hier.val.length; i++) {
-      if (hier.val[i].val === specs.LAMBDA) {
+      var cur = hier.val[i];
+
+      if (isLam(cur)) {
         lamIndex = i;
 
-      } else if (hier.val[i].key === types.MUL && hier.val[i].val.length === 2) {
+      } else if (isMul(cur) && cur.val.length === 2) {
         elemIndex = i;
 
         var starLit = null;
         var normLit = null;
-        for (var j = 0; j < hier.val[i].val.length; j++) {
-          if (hier.val[i].val[j].key === types.STAR) {
-            starIndex = j;
-            starLit = hier.val[i].val[j].val.val;
 
-          } else if (hier.val[i].val[j].key === types.ATOM) {
+        for (var j = 0; j < cur.val.length; j++) {
+          if (isStar(cur.val[j])) {
+            starIndex = j;
+            starLit = cur.val[j].val.val;
+
+          } else if (isAtom(cur.val[j])) {
             sameStar = j;
-            normLit = hier.val[i].val[j].val;
+            normLit = cur.val[j].val;
           }
         }
       }
@@ -159,15 +162,15 @@ function minimize_06(hier) {
 
 // λ+A* -> A*
 function minimize_05(hier) {
-  if (hier.key === types.ADD && hier.val.length >= 2) {
+  if (isAdd(hier) && hier.val.length >= 2) {
     var myLam = -1;
     var myStar = -1;
 
     for (var i = 0; i < hier.val.length; i++) {
-      if (hier.val[i].key === types.STAR) {
+      if (isStar(hier.val[i])) {
         myStar = i;
 
-      } else if (hier.val[i].val === specs.LAMBDA) {
+      } else if (isLam(hier.val[i])) {
         myLam = i;
       }
 
@@ -184,7 +187,7 @@ function minimize_05(hier) {
 
 // A+A -> A
 function minimize_04(hier) {
-  if (hier.key === types.ADD && hier.val.length >= 2) {
+  if (isAdd(hier) && hier.val.length >= 2) {
     for (var i = 0; i < hier.val.length - 1; i++) {
       var found = -1;
 
@@ -208,8 +211,7 @@ function minimize_04(hier) {
 
 // A+(B+C) -> A+B+C, A(BC) -> ABC, Associative property
 function minimize_03(hier) {
-  if ((hier.key === types.ADD || hier.key === types.MUL)
-    && hier.val.length >= 2) {
+  if ((isAdd(hier) || isMul(hier)) && hier.val.length >= 2) {
     var found = -1, i;
 
     for (i = 0; i < hier.val.length; i++) {
@@ -235,11 +237,11 @@ function minimize_03(hier) {
 
 // λA -> A
 function minimize_02(hier) {
-  if (hier.key === types.MUL && hier.val.length >= 2) {
+  if (isMul(hier) && hier.val.length >= 2) {
     var lamIndex = -1;
 
     for (var i = 0; i < hier.val.length; i++) {
-      if (hier.val[i].val === specs.LAMBDA) {
+      if (isLam(hier.val[i])) {
         lamIndex = i;
       }
     }
@@ -255,11 +257,10 @@ function minimize_02(hier) {
 
 // (A) -> A
 function minimize_01(hier) {
-  if ((hier.key === types.MUL || hier.key === types.ADD)
-    && hier.val.length === 1) {
+  if ((isAdd(hier) || isMul(hier)) && hier.val.length === 1) {
     hier.key = hier.val[0].key;
-
     delAndCopy(hier, hier.val[0]);
+
     return true;
   }
 
@@ -594,4 +595,24 @@ function areEqual(obj1, obj2) {
   }
 
   return true;
-};
+}
+
+function isStar(inVar) {
+  return inVar.key === types.STAR;
+}
+
+function isMul(inVar) {
+  return inVar.key === types.MUL;
+}
+
+function isAdd(inVar) {
+  return inVar.key === types.ADD;
+}
+
+function isAtom(inVar) {
+  return inVar.key === types.ATOM;
+}
+
+function isLam(inVar) {
+  return inVar.val === specs.LAMBDA;
+}
