@@ -108,12 +108,12 @@ function minimize_step(regex) {
   return [result, param.rulesDone];
 }
 
-minimize_list.push({ 'func': minimize_07, 'rule': "(ab+ac) -> a(b+c)", 'type': '' });
-minimize_list.push({ 'func': minimize_05, 'rule': "obj1 + obj2 = obj2 IF obj ⊆ obj2", 'type': '' });
-minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* => A*", 'type': '' });
-minimize_list.push({ 'func': minimize_03, 'rule': "A(BC) -> ABC", 'type': '' });
-minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
 minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
+minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
+minimize_list.push({ 'func': minimize_03, 'rule': "A(BC) -> ABC", 'type': '' });
+minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* => A*", 'type': '' });
+minimize_list.push({ 'func': minimize_05, 'rule': "obj1 + obj2 = obj2 IF obj ⊆ obj2", 'type': '' });
+minimize_list.push({ 'func': minimize_07, 'rule': "(ab+ac) -> a(b+c)", 'type': '' });
 
 // (ab+ac) -> a(b+c)
 function minimize_07(hier) {

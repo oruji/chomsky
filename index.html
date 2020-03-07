@@ -18,6 +18,8 @@
 
       var inVar = $("#inVar").val();
 
+      inVar = inVar.split("$").join("λ")
+
       var minimum = strMinimize(inVar);
 
       try {
@@ -89,7 +91,8 @@
 
 <body>
   <h1>Regular Expression Simplifier and Minimizer</h1>
-  <div style="padding-bottom: 5px;padding-top: 5px;">Use "<span class="lambda">λ</span>" character for empty string.
+  <div style="padding-bottom: 5px;padding-top: 5px;">Use "<span class="lambda">λ</span>" or "$" character for empty
+    string.
   </div>
   <input placeholder="Enter your Regex!" id="inVar" value="(a+aλ)" type="text" />
   <button class="button" onclick="onClick()">Minimize</button>
