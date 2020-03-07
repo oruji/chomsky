@@ -125,16 +125,19 @@ function minimize_07(hier) {
     for (var i = 0; i < hier.val.length; i++) {
       for (var j = i + 1; j < hier.val.length; j++) {
 
+        // left is not mul and right is mul a+ab or a+ba
         if (!isMul(hier.val[i]) && isMul(hier.val[j])) {
           nMulIdx = i;
           mulIdx = j;
           break;
 
+          // lift is mul and right is not mul ab+a or ba+a
         } else if (isMul(hier.val[i]) && !isMul(hier.val[j])) {
           mulIdx = i;
           nMulIdx = j;
           break;
 
+          // both are mul ab+ac or ab+cb
         } else if (isMul(hier.val[i]) && hier.val[i].val.length >= 2
           && isMul(hier.val[j]) && hier.val[j].val.length >= 2) {
           bothMul = [i, j];
@@ -144,7 +147,7 @@ function minimize_07(hier) {
 
       // if one of them are not multiply
       if (mulIdx >= 0 && nMulIdx >= 0) {
-        // if first character are common
+        // if first is common a+ab or ab+a
         if (areEqual(hier.val[mulIdx].val[0], hier.val[nMulIdx])) {
           var common = hier.val[nMulIdx];
           var rest1 = genLam();
@@ -157,7 +160,7 @@ function minimize_07(hier) {
           hier.val.splice(mulIdx, 1);
 
           return true;
-          // if last character are common
+          // if last is common a+ba or ba+a
         } else if (areEqual(getLast(hier.val[mulIdx].val), hier.val[nMulIdx])) {
           var common = hier.val[nMulIdx];
           var rest1 = genLam();
@@ -172,8 +175,8 @@ function minimize_07(hier) {
           return true;
         }
 
-        // if both are Multiply
       } else if (bothMul != -1) {
+        // if first is common ab+ac
         if (areEqual(hier.val[bothMul[1]].val[0], hier.val[bothMul[0]].val[0])) {
           var common = hier.val[bothMul[0]].val[0];
           var rest1 = genMul(hier.val[bothMul[0]].val.slice(1));
@@ -186,6 +189,7 @@ function minimize_07(hier) {
           hier.val.splice(bothMul[1], 1);
 
           return true;
+          // if last is common ab+cb 
         } else if (areEqual(getLast(hier.val[bothMul[1]].val), getLast(hier.val[bothMul[0]].val))) {
           var common = getLast(hier.val[bothMul[0]].val);
           var rest1 = genMul(hier.val[bothMul[0]].val.slice(0, hier.val[bothMul[0]].val.length - 1));
