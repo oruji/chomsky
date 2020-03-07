@@ -108,11 +108,54 @@ function minimize_step(regex) {
   return [result, param.rulesDone];
 }
 
+minimize_list.push({ 'func': minimize_06, 'rule': "λ+AA* => A*", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "λ+A* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_04, 'rule': "A+A -> A", 'type': '' });
 minimize_list.push({ 'func': minimize_03, 'rule': "A+(B+C) -> A+B+C, A(BC) -> ABC", 'type': '' });
 minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
 minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
+
+// λ+AA* => A*
+function minimize_06(hier) {
+  if (hier.key === types.ADD && hier.val.length >= 2) {
+    var lamIndex = -1;
+    var starIndex = -1;
+    var sameStar = -1;
+    var elemIndex = -1;
+
+    for (var i = 0; i < hier.val.length; i++) {
+      if (hier.val[i].val === specs.LAMBDA) {
+        lamIndex = i;
+
+      } else if (hier.val[i].key === types.MUL && hier.val[i].val.length === 2) {
+        elemIndex = i;
+
+        var starLit = null;
+        var normLit = null;
+        for (var j = 0; j < hier.val[i].val.length; j++) {
+          if (hier.val[i].val[j].key === types.STAR) {
+            starIndex = j;
+            starLit = hier.val[i].val[j].val.val;
+
+          } else if (hier.val[i].val[j].key === types.ATOM) {
+            sameStar = j;
+            normLit = hier.val[i].val[j].val;
+          }
+        }
+      }
+      if (lamIndex >= 0 && starIndex >= 0 && sameStar >= 0 && elemIndex >= 0) {
+        if (starLit === normLit) {
+          hier.val[elemIndex].val.splice(sameStar, 1)
+          hier.val.splice(lamIndex, 1);
+
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
 
 // λ+A* -> A*
 function minimize_05(hier) {
