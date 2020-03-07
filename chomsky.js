@@ -111,7 +111,7 @@ function minimize_step(regex) {
 minimize_list.push({ 'func': minimize_07, 'rule': "(ab+ac) -> a(b+c)", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "obj1 + obj2 = obj2 IF obj ⊆ obj2", 'type': '' });
 minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* => A*", 'type': '' });
-minimize_list.push({ 'func': minimize_03, 'rule': "A+(B+C) -> A+B+C, A(BC) -> ABC", 'type': '' });
+minimize_list.push({ 'func': minimize_03, 'rule': "A(BC) -> ABC", 'type': '' });
 minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
 minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
 
@@ -124,9 +124,10 @@ function minimize_07(hier) {
 
     for (var i = 0; i < hier.val.length; i++) {
       for (var j = i + 1; j < hier.val.length; j++) {
+
         if (!isMul(hier.val[i]) && isMul(hier.val[j])) {
-          mulIdx = j;
           nMulIdx = i;
+          mulIdx = j;
           break;
 
         } else if (isMul(hier.val[i]) && !isMul(hier.val[j])) {
@@ -140,28 +141,58 @@ function minimize_07(hier) {
           break;
         }
       }
+
+      // if one of them are not multiply
       if (mulIdx >= 0 && nMulIdx >= 0) {
+        // if first character are common
         if (areEqual(hier.val[mulIdx].val[0], hier.val[nMulIdx])) {
-          var first = hier.val[nMulIdx];
+          var common = hier.val[nMulIdx];
           var rest1 = genLam();
           var rest2 = genMul(hier.val[mulIdx].val.slice(1, hier.val[mulIdx].val.length));
 
           var _alt = genAdd([rest1, rest2]);
-          var _seq = genMul([first, _alt]);
+          var _seq = genMul([common, _alt]);
+
+          hier.val[nMulIdx] = _seq;
+          hier.val.splice(mulIdx, 1);
+
+          return true;
+          // if last character are common
+        } else if (areEqual(getLast(hier.val[mulIdx].val), hier.val[nMulIdx])) {
+          var common = hier.val[nMulIdx];
+          var rest1 = genLam();
+          var rest2 = genMul(hier.val[mulIdx].val.slice(0, hier.val[mulIdx].val.length - 1));
+
+          var _alt = genAdd([rest1, rest2]);
+          var _seq = genMul([_alt, common]);
 
           hier.val[nMulIdx] = _seq;
           hier.val.splice(mulIdx, 1);
 
           return true;
         }
+
+        // if both are Multiply
       } else if (bothMul != -1) {
         if (areEqual(hier.val[bothMul[1]].val[0], hier.val[bothMul[0]].val[0])) {
-          var first = hier.val[bothMul[0]].val[0];
+          var common = hier.val[bothMul[0]].val[0];
           var rest1 = genMul(hier.val[bothMul[0]].val.slice(1));
           var rest2 = genMul(hier.val[bothMul[1]].val.slice(1));
 
           var _alt = genAdd([rest1, rest2]);
-          var _seq = genMul([first, _alt]);
+          var _seq = genMul([common, _alt]);
+
+          hier.val[i] = _seq;
+          hier.val.splice(bothMul[1], 1);
+
+          return true;
+        } else if (areEqual(getLast(hier.val[bothMul[1]].val), getLast(hier.val[bothMul[0]].val))) {
+          var common = getLast(hier.val[bothMul[0]].val);
+          var rest1 = genMul(hier.val[bothMul[0]].val.slice(0, hier.val[bothMul[0]].val.length - 1));
+          var rest2 = genMul(hier.val[bothMul[1]].val.slice(0, hier.val[bothMul[1]].val.length - 1));
+
+          var _alt = genAdd([rest1, rest2]);
+          var _seq = genMul([_alt, common]);
 
           hier.val[i] = _seq;
           hier.val.splice(bothMul[1], 1);
@@ -696,4 +727,10 @@ function isSub(inVar, inVar2) {
   }
 
   return false;
+}
+
+function getLast(arr, num) {
+  if (num === undefined)
+    num = 1;
+  return arr[arr.length - num];
 }
