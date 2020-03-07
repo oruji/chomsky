@@ -36,6 +36,8 @@
 .ruleTitle {
   background: #4c647d;
   color: #ebe9ff;
+  padding-top: 2px;
+  padding-bottom: 2px;
 }
 
 .rule {

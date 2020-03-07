@@ -2,7 +2,7 @@ var types = {
   ADD: 'add',
   MUL: 'mul',
   STAR: 'star',
-  ATOM: 'atom',
+  LIT: 'lit',
 };
 
 var specs = {
@@ -108,14 +108,14 @@ function minimize_step(regex) {
   return [result, param.rulesDone];
 }
 
-minimize_list.push({ 'func': minimize_07, 'rule': "obj1 + obj2 = obj2 IF obj ⊆ obj2", 'type': '' });
-minimize_list.push({ 'func': minimize_06, 'rule': "λ+AA* => A*", 'type': '' });
+minimize_list.push({ 'func': minimize_05, 'rule': "obj1 + obj2 = obj2 IF obj ⊆ obj2", 'type': '' });
+minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* => A*", 'type': '' });
 minimize_list.push({ 'func': minimize_03, 'rule': "A+(B+C) -> A+B+C, A(BC) -> ABC", 'type': '' });
 minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
 minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
 
 // obj1 + obj2 = obj2 IF obj ⊆ obj2
-function minimize_07(hier) {
+function minimize_05(hier) {
   if (isAdd(hier) && hier.val.length >= 2) {
     var found = -1;
 
@@ -138,7 +138,7 @@ function minimize_07(hier) {
 }
 
 // λ+AA* => A*
-function minimize_06(hier) {
+function minimize_04(hier) {
   if (isAdd(hier) && hier.val.length >= 2) {
     var lamIndex = -1;
     var starIndex = -1;
@@ -162,7 +162,7 @@ function minimize_06(hier) {
             starIndex = j;
             starLit = cur.val[j].val.val;
 
-          } else if (isAtom(cur.val[j])) {
+          } else if (isLit(cur.val[j])) {
             sameStar = j;
             normLit = cur.val[j].val;
           }
@@ -263,11 +263,31 @@ function genType(type, item) {
   };
 }
 
+function genMul(item) {
+  return genType(types.MUL, item);
+}
+
+function genAdd(item) {
+  return genType(types.ADD, item);
+}
+
+function genLam() {
+  return genType(types.LIT, specs.LAMBDA);
+}
+
+function genLit(item) {
+  return genType(types.LIT, item);
+}
+
+function genStar(item) {
+  return genType(types.STAR, item);
+}
+
 var _prec = {};
 _prec[types.ADD] = 0;
 _prec[types.MUL] = 1;
 _prec[types.STAR] = 2;
-_prec[types.ATOM] = 3;
+_prec[types.LIT] = 3;
 
 function needParens(par, child) {
   return _prec[par.key] >= _prec[child.key];
@@ -308,7 +328,7 @@ function starToArray(regex, arr) {
   arr.push("*");
 }
 
-function atomToArray(regex, arr) {
+function litToArray(regex, arr) {
   arr.push(regex.val);
 }
 
@@ -316,7 +336,7 @@ var _toArrayFuns = {};
 _toArrayFuns[types.ADD] = addToArray;
 _toArrayFuns[types.MUL] = mulToArray;
 _toArrayFuns[types.STAR] = starToArray;
-_toArrayFuns[types.ATOM] = atomToArray;
+_toArrayFuns[types.LIT] = litToArray;
 
 function _dispatchToArray(regex, arr) {
   return _toArrayFuns[regex.key](regex, arr);
@@ -412,14 +432,14 @@ function secondComp(globArr) {
 }
 
 function thirdComp(globArr) {
-  var atom = forthComp(globArr);
+  var lit = forthComp(globArr);
 
   if (globArr.select() === "*") {
     globArr.next();
-    atom = genType(types.STAR, atom);
+    lit = genType(types.STAR, lit);
   }
 
-  return atom;
+  return lit;
 }
 
 function forthComp(globArr) {
@@ -438,7 +458,7 @@ function forthComp(globArr) {
 
   } else if (globArr.select() === specs.LAMBDA) {
     globArr.next();
-    return genType(types.ATOM, specs.LAMBDA);
+    return genType(types.LIT, specs.LAMBDA);
 
   } else if (globArr.select() === undefined || globArr.select() === "+" ||
     globArr.select() === ")") {
@@ -449,7 +469,7 @@ function forthComp(globArr) {
       globArr.index, globArr.index);
 
   } else {
-    var sym = genType(types.ATOM, globArr.select());
+    var sym = genType(types.LIT, globArr.select());
     globArr.next();
 
     return sym;
@@ -582,8 +602,8 @@ function isAdd(inVar) {
   return inVar.key === types.ADD;
 }
 
-function isAtom(inVar) {
-  return inVar.key === types.ATOM;
+function isLit(inVar) {
+  return inVar.key === types.LIT;
 }
 
 function isLam(inVar) {
