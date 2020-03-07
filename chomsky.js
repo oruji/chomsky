@@ -108,11 +108,72 @@ function minimize_step(regex) {
   return [result, param.rulesDone];
 }
 
+minimize_list.push({ 'func': minimize_07, 'rule': "(ab+ac) -> a(b+c)", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "obj1 + obj2 = obj2 IF obj ⊆ obj2", 'type': '' });
 minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* => A*", 'type': '' });
 minimize_list.push({ 'func': minimize_03, 'rule': "A+(B+C) -> A+B+C, A(BC) -> ABC", 'type': '' });
 minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
 minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
+
+// (ab+ac) -> a(b+c)
+function minimize_07(hier) {
+  if (isAdd(hier) && hier.val.length >= 2) {
+    var mulIdx = -1;
+    var nMulIdx = -1;
+    var bothMul = -1;
+
+    for (var i = 0; i < hier.val.length; i++) {
+      for (var j = i + 1; j < hier.val.length; j++) {
+        if (!isMul(hier.val[i]) && isMul(hier.val[j])) {
+          mulIdx = j;
+          nMulIdx = i;
+          break;
+
+        } else if (isMul(hier.val[i]) && !isMul(hier.val[j])) {
+          mulIdx = i;
+          nMulIdx = j;
+          break;
+
+        } else if (isMul(hier.val[i]) && hier.val[i].val.length >= 2
+          && isMul(hier.val[j]) && hier.val[j].val.length >= 2) {
+          bothMul = [i, j];
+          break;
+        }
+      }
+      if (mulIdx >= 0 && nMulIdx >= 0) {
+        if (areEqual(hier.val[mulIdx].val[0], hier.val[nMulIdx])) {
+          var first = hier.val[nMulIdx];
+          var rest1 = genLam();
+          var rest2 = genMul(hier.val[mulIdx].val.slice(1, hier.val[mulIdx].val.length));
+
+          var _alt = genAdd([rest1, rest2]);
+          var _seq = genMul([first, _alt]);
+
+          hier.val[nMulIdx] = _seq;
+          hier.val.splice(mulIdx, 1);
+
+          return true;
+        }
+      } else if (bothMul != -1) {
+        if (areEqual(hier.val[bothMul[1]].val[0], hier.val[bothMul[0]].val[0])) {
+          var first = hier.val[bothMul[0]].val[0];
+          var rest1 = genMul(hier.val[bothMul[0]].val.slice(1));
+          var rest2 = genMul(hier.val[bothMul[1]].val.slice(1));
+
+          var _alt = genAdd([rest1, rest2]);
+          var _seq = genMul([first, _alt]);
+
+          hier.val[i] = _seq;
+          hier.val.splice(bothMul[1], 1);
+
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
 
 // obj1 + obj2 = obj2 IF obj ⊆ obj2
 function minimize_05(hier) {
