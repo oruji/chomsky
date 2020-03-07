@@ -108,12 +108,34 @@ function minimize_step(regex) {
   return [result, param.rulesDone];
 }
 
+minimize_list.push({ 'func': minimize_07, 'rule': "obj1 + obj2 = obj2 IF obj ⊆ obj2", 'type': '' });
 minimize_list.push({ 'func': minimize_06, 'rule': "λ+AA* => A*", 'type': '' });
-minimize_list.push({ 'func': minimize_05, 'rule': "λ+A* -> A*", 'type': '' });
-minimize_list.push({ 'func': minimize_04, 'rule': "A+A -> A", 'type': '' });
 minimize_list.push({ 'func': minimize_03, 'rule': "A+(B+C) -> A+B+C, A(BC) -> ABC", 'type': '' });
 minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
 minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
+
+// obj1 + obj2 = obj2 IF obj ⊆ obj2
+function minimize_07(hier) {
+  if (isAdd(hier) && hier.val.length >= 2) {
+    var found = -1;
+
+    for (var i = 0; i < hier.val.length; i++) {
+      var cur = hier.val[i];
+
+      for (var j = 0; j < hier.val.length; j++) {
+        if (i == j) continue;
+        var cur2 = hier.val[j];
+
+        if (isSub(cur, cur2)) {
+          hier.val.splice(i, 1);
+
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
 
 // λ+AA* => A*
 function minimize_06(hier) {
@@ -153,55 +175,6 @@ function minimize_06(hier) {
 
           return true;
         }
-      }
-    }
-  }
-
-  return false;
-}
-
-// λ+A* -> A*
-function minimize_05(hier) {
-  if (isAdd(hier) && hier.val.length >= 2) {
-    var myLam = -1;
-    var myStar = -1;
-
-    for (var i = 0; i < hier.val.length; i++) {
-      if (isStar(hier.val[i])) {
-        myStar = i;
-
-      } else if (isLam(hier.val[i])) {
-        myLam = i;
-      }
-
-      if (myStar >= 0 && myLam >= 0) {
-        hier.val.splice(myLam, 1);
-
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
-// A+A -> A
-function minimize_04(hier) {
-  if (isAdd(hier) && hier.val.length >= 2) {
-    for (var i = 0; i < hier.val.length - 1; i++) {
-      var found = -1;
-
-      for (var j = i + 1; j < hier.val.length; j++) {
-        if (areEqual(hier.val[i], hier.val[j])) {
-          found = i;
-          break;
-        }
-      }
-
-      if (found >= 0) {
-        hier.val.splice(found, 1);
-
-        return true;
       }
     }
   }
@@ -615,4 +588,31 @@ function isAtom(inVar) {
 
 function isLam(inVar) {
   return inVar.val === specs.LAMBDA;
+}
+
+function isSub(inVar, inVar2) {
+
+  if (areEqual(inVar, inVar2)) {
+    // obj = obj
+    return true;
+  }
+
+  if (isStar(inVar2)) {
+    if (isLam(inVar)) {
+      // λ = obj*
+      return true;
+
+    } else if (areEqual(inVar, inVar2.val)) {
+      // obj = obj*
+      return true;
+
+    } else if (isMul(inVar)) {
+      if (inVar.val.every((val, i, arr) => areEqual(val, arr[0]))) {
+        // objobjobj = obj*
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
