@@ -74,7 +74,7 @@ function minimize_rec(hier, ruleFunc) {
   var childArr = [];
 
   if (hier.isAdd() || hier.isMul() || hier.isStar()) {
-    childArr = hier.getVal();
+    childArr = hier.val();
   }
 
   for (var i = 0; i < childArr.length; i++) {
@@ -325,20 +325,8 @@ function minimize_02(hier) {
 }
 
 // (A) -> A
-// function minimize_01(hier) {
-//   if ((isAdd(hier) || isMul(hier)) && hier.val.length === 1) {
-//     hier.key = hier.val[0].key;
-//     delAndCopy(hier, hier.val[0]);
-
-//     return true;
-//   }
-
-//   return false;
-// }
-
-// (A) -> A
 function minimize_01(tree) {
-  if ((tree.isAdd() || tree.isMul()) && tree.getVal().length === 1) {
+  if ((tree.isAdd() || tree.isMul()) && tree.val().length === 1) {
     tree.delOuter();
 
     return true;
@@ -430,20 +418,20 @@ function _binOpToArray(regex, arr, parts, operand) {
 }
 
 function addToArray(regex, arr) {
-  _binOpToArray(regex, arr, regex.getVal(), "+");
+  _binOpToArray(regex, arr, regex.val(), "+");
 }
 
 function mulToArray(regex, arr) {
-  _binOpToArray(regex, arr, regex.getVal());
+  _binOpToArray(regex, arr, regex.val());
 }
 
 function starToArray(regex, arr) {
-  _optParenToArray(regex, regex.getVal(), arr);
+  _optParenToArray(regex, regex.val(), arr);
   arr.push("*");
 }
 
 function litToArray(regex, arr) {
-  arr.push(regex.getVal());
+  arr.push(regex.val());
 }
 
 var _toArrayFuns = {};
@@ -453,7 +441,7 @@ _toArrayFuns[types.STAR] = starToArray;
 _toArrayFuns[types.LIT] = litToArray;
 
 function _dispatchToArray(regex, arr) {
-  return _toArrayFuns[regex.getKey()](regex, arr);
+  return _toArrayFuns[regex.key()](regex, arr);
 }
 
 function toArray(regex) {

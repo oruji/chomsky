@@ -59,7 +59,7 @@ class Tree {
     return this.has(types.STAR);
   }
 
-  getVal() {
+  val() {
     if (this.isAdd()) {
       return this.add;
 
@@ -74,7 +74,7 @@ class Tree {
     }
   }
 
-  getKey() {
+  key() {
     if (this.isAdd()) {
       return types.ADD;
 
@@ -94,13 +94,13 @@ class Tree {
     var myVal = null;
 
     if (this.isAdd() || this.isMul()) {
-      var tempVal = this.getVal()[0];
-      myKey = tempVal.getKey();
-      myVal = tempVal.getVal();
+      var tempVal = this.val()[0];
+      myKey = tempVal.key();
+      myVal = tempVal.val();
 
     } else if (this.isStar()) {
-      myKey = this.getVal().getKey();
-      myVal = this.getVal().getVal();
+      myKey = this.val().key();
+      myVal = this.val().val();
     }
 
     if (myKey !== null && myVal !== null) {
@@ -111,7 +111,7 @@ class Tree {
 
   clone() {
     var obj = new Tree();
-    obj[this.getKey()] = this.getVal();
+    obj[this.key()] = this.val();
     return obj;
   }
 
@@ -180,21 +180,21 @@ class Tree {
     if (tree.has(types.LIT)) {
       var obj = {};
       obj.key = types.LIT;
-      obj.val = tree.getVal();
+      obj.val = tree.val();
 
       return obj;
 
     } else if (tree.has(types.STAR)) {
       var obj = {};
       obj.key = types.STAR;
-      obj.val = this._toHier(tree.getVal());
+      obj.val = this._toHier(tree.val());
 
       return obj;
 
     } else if (tree.has(types.ADD)) {
       var arr = [];
       var obj = {};
-      for (var i = 0; i < tree.getVal().length; i++) {
+      for (var i = 0; i < tree.val().length; i++) {
         arr.push(this._toHier(tree.add[i]));
       }
 
@@ -205,8 +205,8 @@ class Tree {
     } else if (tree.has(types.MUL)) {
       var arr = [];
       var obj = {};
-      for (var i = 0; i < tree.getVal().length; i++) {
-        arr.push(this._toHier(tree.getVal()[i]));
+      for (var i = 0; i < tree.val().length; i++) {
+        arr.push(this._toHier(tree.val()[i]));
       }
 
       obj.key = types.MUL;
