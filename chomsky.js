@@ -340,15 +340,24 @@ function minimize_02(hier) {
 function minimize_01(hier) {
   var tree = new Tree(hier);
 
-  if (tree.isAdd() && tree.add.length === 1) {
-    tree[Object.keys(tree)[0]][0]
-    var val = tree.add;
-    tree[Object.keys(tree.add[0])][0];
+  if ((tree.isAdd() || tree.isMul()) && tree.getVal().length === 1) {
+
+    tree.delOuter();
+
+    tree.toHier(hier);
 
     return true;
   }
 
   return false;
+}
+
+function delObj(obj) {
+  for (var o in obj) {
+    if (obj.hasOwnProperty(o)) {
+      delete obj[o];
+    }
+  }
 }
 
 function delAndCopy(o1, o2) {
