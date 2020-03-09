@@ -12,7 +12,7 @@ var specs = {
 var minimize_list = [];
 
 function minimize(hier, param) {
-  var hierCopy = JSON.parse(JSON.stringify(hier));
+  var hierCopy = hier.clone();
 
   if (param === undefined) {
     param = {};
@@ -73,8 +73,8 @@ function minimize_rec(hier, ruleFunc) {
 
   var childArr = [];
 
-  if (hier.key === types.ADD || hier.key === types.MUL || hier.key === types.STAR) {
-    childArr = hier.val;
+  if (hier.isAdd() || hier.isMul() || hier.isStar()) {
+    childArr = hier.getVal();
   }
 
   for (var i = 0; i < childArr.length; i++) {
@@ -337,14 +337,9 @@ function minimize_02(hier) {
 // }
 
 // (A) -> A
-function minimize_01(hier) {
-  var tree = new Tree(hier);
-
+function minimize_01(tree) {
   if ((tree.isAdd() || tree.isMul()) && tree.getVal().length === 1) {
-
     tree.delOuter();
-
-    tree.toHier(hier);
 
     return true;
   }
@@ -377,10 +372,9 @@ function delAndCopy(o1, o2) {
 }
 
 function genType(type, item) {
-  return {
-    key: type,
-    val: item
-  };
+  var tree = new Tree();
+  tree[type] = item;
+  return tree;
 }
 
 function genMul(item) {
@@ -436,20 +430,20 @@ function _binOpToArray(regex, arr, parts, operand) {
 }
 
 function addToArray(regex, arr) {
-  _binOpToArray(regex, arr, regex.val, "+");
+  _binOpToArray(regex, arr, regex.getVal(), "+");
 }
 
 function mulToArray(regex, arr) {
-  _binOpToArray(regex, arr, regex.val);
+  _binOpToArray(regex, arr, regex.getVal());
 }
 
 function starToArray(regex, arr) {
-  _optParenToArray(regex, regex.val, arr);
+  _optParenToArray(regex, regex.getVal(), arr);
   arr.push("*");
 }
 
 function litToArray(regex, arr) {
-  arr.push(regex.val);
+  arr.push(regex.getVal());
 }
 
 var _toArrayFuns = {};
@@ -459,7 +453,7 @@ _toArrayFuns[types.STAR] = starToArray;
 _toArrayFuns[types.LIT] = litToArray;
 
 function _dispatchToArray(regex, arr) {
-  return _toArrayFuns[regex.key](regex, arr);
+  return _toArrayFuns[regex.getKey()](regex, arr);
 }
 
 function toArray(regex) {
@@ -708,26 +702,6 @@ function areEqual(obj1, obj2) {
   }
 
   return true;
-}
-
-function isStar(inVar) {
-  return inVar.key === types.STAR;
-}
-
-function isMul(inVar) {
-  return inVar.key === types.MUL;
-}
-
-function isAdd(inVar) {
-  return inVar.key === types.ADD;
-}
-
-function isLit(inVar) {
-  return inVar.key === types.LIT;
-}
-
-function isLam(inVar) {
-  return inVar.val === specs.LAMBDA;
 }
 
 function isSub(inVar, inVar2) {

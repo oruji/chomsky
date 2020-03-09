@@ -109,6 +109,12 @@ class Tree {
     }
   }
 
+  clone() {
+    var obj = new Tree();
+    obj[this.getKey()] = this.getVal();
+    return obj;
+  }
+
   _toTree(hier) {
     if (hier.key === types.LIT) {
       var obj = new Tree();
