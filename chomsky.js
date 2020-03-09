@@ -109,11 +109,11 @@ function minimize_step(regex) {
 }
 
 minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
-minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
-minimize_list.push({ 'func': minimize_03, 'rule': "A(BC) -> ABC", 'type': '' });
-minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* => A*", 'type': '' });
-minimize_list.push({ 'func': minimize_05, 'rule': "obj1 + obj2 = obj2 IF obj ⊆ obj2", 'type': '' });
-minimize_list.push({ 'func': minimize_07, 'rule': "(ab+ac) -> a(b+c)", 'type': '' });
+// minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
+// minimize_list.push({ 'func': minimize_03, 'rule': "A(BC) -> ABC", 'type': '' });
+// minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* => A*", 'type': '' });
+// minimize_list.push({ 'func': minimize_05, 'rule': "obj1 + obj2 = obj2 IF obj ⊆ obj2", 'type': '' });
+// minimize_list.push({ 'func': minimize_07, 'rule': "(ab+ac) -> a(b+c)", 'type': '' });
 
 // (ab+ac) -> a(b+c)
 function minimize_07(hier) {
@@ -325,10 +325,25 @@ function minimize_02(hier) {
 }
 
 // (A) -> A
+// function minimize_01(hier) {
+//   if ((isAdd(hier) || isMul(hier)) && hier.val.length === 1) {
+//     hier.key = hier.val[0].key;
+//     delAndCopy(hier, hier.val[0]);
+
+//     return true;
+//   }
+
+//   return false;
+// }
+
+// (A) -> A
 function minimize_01(hier) {
-  if ((isAdd(hier) || isMul(hier)) && hier.val.length === 1) {
-    hier.key = hier.val[0].key;
-    delAndCopy(hier, hier.val[0]);
+  var tree = new Tree(hier);
+
+  if (tree.isAdd() && tree.add.length === 1) {
+    tree[Object.keys(tree)[0]][0]
+    var val = tree.add;
+    tree[Object.keys(tree.add[0])][0];
 
     return true;
   }
@@ -737,74 +752,4 @@ function getLast(arr, num) {
   if (num === undefined)
     num = 1;
   return arr[arr.length - num];
-}
-
-function getTree(hier) {
-  var tree = hierToTree(hier);
-  tree.toString = function () {
-    return treeToStr(this).trim();
-  }
-  return tree;
-}
-
-function hierToTree(hier) {
-  if (hier.key === "lit") {
-    var obj = {};
-    obj[hier.key] = hier.val;
-
-    return obj;
-
-  } else if (hier.key === "star") {
-    var obj = {};
-    obj[hier.key] = hierToTree(hier.val);
-
-    return obj;
-
-  } else if (hier.key === "add" || hier.key === "mul") {
-    var arr = [];
-
-    for (var i = 0; i < hier.val.length; i++) {
-      arr.push(hierToTree(hier.val[i]));
-    }
-
-    var obj = {};
-    obj[hier.key] = arr;
-
-    return obj;
-
-  } else {
-    return null;
-  }
-}
-
-function treeToStr(tree, tab = "") {
-  if (tree.hasOwnProperty("lit")) {
-    return "\"" + tree.lit + "\"";
-
-  } else if (tree.hasOwnProperty("star")) {
-    tab += "\t";
-    return "star\n" + tab + treeToStr(tree.star, tab);
-
-  } else if (tree.hasOwnProperty("add")) {
-    var str = "";
-    tab += "\t";
-    for (var i = 0; i < tree.add.length; i++) {
-      str += treeToStr(tree.add[i], tab) + "\n" + tab;
-    }
-
-    return "add\n" + tab + str;
-
-  } else if (tree.hasOwnProperty("mul")) {
-    var str = "";
-
-    for (var i = 0; i < tree.mul.length; i++) {
-      str += treeToStr(tree.mul, tab);
-    }
-
-    tab += "\t";
-    return "mull\n" + tab + arr;
-
-  } else {
-    return null;
-  }
 }
