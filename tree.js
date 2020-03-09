@@ -59,6 +59,10 @@ class Tree {
     return this.has(types.STAR);
   }
 
+  isLam() {
+    return this.val() === specs.LAMBDA;
+  }
+
   val() {
     if (this.isAdd()) {
       return this.add;
@@ -146,14 +150,14 @@ class Tree {
   }
 
   _toStr(tree, tab = "") {
-    if (tree.hasOwnProperty(types.LIT)) {
+    if (tree.has(types.LIT)) {
       return "\"" + tree.lit + "\"";
 
-    } else if (tree.hasOwnProperty(types.STAR)) {
+    } else if (tree.has(types.STAR)) {
       tab += "  ";
       return "star\n" + tab + this._toStr(tree.star, tab);
 
-    } else if (tree.hasOwnProperty(types.ADD)) {
+    } else if (tree.has(types.ADD)) {
       var str = "";
       tab += "  ";
       for (var i = 0; i < tree.add.length; i++) {
@@ -162,7 +166,7 @@ class Tree {
 
       return "add\n" + tab + str;
 
-    } else if (tree.hasOwnProperty(types.MUL)) {
+    } else if (tree.has(types.MUL)) {
       var str = "";
       tab += "  ";
       for (var i = 0; i < tree.mul.length; i++) {

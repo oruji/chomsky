@@ -109,7 +109,7 @@ function minimize_step(regex) {
 }
 
 minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
-// minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
+minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
 // minimize_list.push({ 'func': minimize_03, 'rule': "A(BC) -> ABC", 'type': '' });
 // minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* => A*", 'type': '' });
 // minimize_list.push({ 'func': minimize_05, 'rule': "obj1 + obj2 = obj2 IF obj ⊆ obj2", 'type': '' });
@@ -304,19 +304,19 @@ function minimize_03(tree) {
   return false;
 }
 
-// λA -> A
+// λobj -> obj
 function minimize_02(tree) {
-  if (isMul(tree) && tree.val.length >= 2) {
+  if (tree.isMul() && tree.val().length >= 2) {
     var lamIndex = -1;
 
-    for (var i = 0; i < tree.val.length; i++) {
-      if (isLam(tree.val[i])) {
+    for (var i = 0; i < tree.val().length; i++) {
+      if (tree.val()[i].isLam()) {
         lamIndex = i;
       }
     }
 
     if (lamIndex >= 0) {
-      tree.val.splice(lamIndex, 1);
+      tree.val().splice(lamIndex, 1);
       return true;
     }
   }
@@ -324,7 +324,7 @@ function minimize_02(tree) {
   return false;
 }
 
-// (A) -> A
+// (obj) -> obj
 function minimize_01(tree) {
   if ((tree.isAdd() || tree.isMul()) && tree.val().length === 1) {
     tree.delOuter();
