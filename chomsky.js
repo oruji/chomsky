@@ -11,8 +11,8 @@ var specs = {
 
 var minimize_list = [];
 
-function minimize(hier, param) {
-  var hierCopy = hier.clone();
+function minimize(tree, param) {
+  var treeCopy = tree.clone();
 
   if (param === undefined) {
     param = {};
@@ -35,7 +35,7 @@ function minimize(hier, param) {
   var counter = 0;
 
   while (ruleDone !== null && (paramCopy.loopNo === null || counter < paramCopy.loopNo)) {
-    ruleDone = minimize_loop(hierCopy);
+    ruleDone = minimize_loop(treeCopy);
 
     if (ruleDone !== null && paramCopy.rulesDone !== null) {
       paramCopy.rulesDone.push(ruleDone);
@@ -44,17 +44,17 @@ function minimize(hier, param) {
     counter += 1;
   }
 
-  return hierCopy;
+  return treeCopy;
 }
 
-function minimize_loop(hier) {
+function minimize_loop(tree) {
   var pattern = null;
   var result = null;
 
   for (var i = 0; i < minimize_list.length; i++) {
     pattern = minimize_list[i];
 
-    result = minimize_rec(hier, pattern['func']);
+    result = minimize_rec(tree, pattern['func']);
 
     if (result) {
       return pattern.rule;
@@ -64,8 +64,8 @@ function minimize_loop(hier) {
   return null;
 }
 
-function minimize_rec(hier, ruleFunc) {
-  var ruleDone = ruleFunc(hier);
+function minimize_rec(tree, ruleFunc) {
+  var ruleDone = ruleFunc(tree);
 
   if (ruleDone) {
     return ruleDone;
@@ -73,8 +73,8 @@ function minimize_rec(hier, ruleFunc) {
 
   var childArr = [];
 
-  if (hier.isAdd() || hier.isMul() || hier.isStar()) {
-    childArr = hier.val();
+  if (tree.isAdd() || tree.isMul() || tree.isStar()) {
+    childArr = tree.val();
   }
 
   for (var i = 0; i < childArr.length; i++) {
@@ -116,30 +116,30 @@ minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
 // minimize_list.push({ 'func': minimize_07, 'rule': "(ab+ac) -> a(b+c)", 'type': '' });
 
 // (ab+ac) -> a(b+c)
-function minimize_07(hier) {
-  if (isAdd(hier) && hier.val.length >= 2) {
+function minimize_07(tree) {
+  if (isAdd(tree) && tree.val.length >= 2) {
     var mulIdx = -1;
     var nMulIdx = -1;
     var bothMul = -1;
 
-    for (var i = 0; i < hier.val.length; i++) {
-      for (var j = i + 1; j < hier.val.length; j++) {
+    for (var i = 0; i < tree.val.length; i++) {
+      for (var j = i + 1; j < tree.val.length; j++) {
 
         // left is not mul and right is mul a+ab or a+ba
-        if (!isMul(hier.val[i]) && isMul(hier.val[j])) {
+        if (!isMul(tree.val[i]) && isMul(tree.val[j])) {
           nMulIdx = i;
           mulIdx = j;
           break;
 
           // lift is mul and right is not mul ab+a or ba+a
-        } else if (isMul(hier.val[i]) && !isMul(hier.val[j])) {
+        } else if (isMul(tree.val[i]) && !isMul(tree.val[j])) {
           mulIdx = i;
           nMulIdx = j;
           break;
 
           // both are mul ab+ac or ab+cb
-        } else if (isMul(hier.val[i]) && hier.val[i].val.length >= 2
-          && isMul(hier.val[j]) && hier.val[j].val.length >= 2) {
+        } else if (isMul(tree.val[i]) && tree.val[i].val.length >= 2
+          && isMul(tree.val[j]) && tree.val[j].val.length >= 2) {
           bothMul = [i, j];
           break;
         }
@@ -148,58 +148,58 @@ function minimize_07(hier) {
       // if one of them are not multiply
       if (mulIdx >= 0 && nMulIdx >= 0) {
         // if first is common a+ab or ab+a
-        if (areEqual(hier.val[mulIdx].val[0], hier.val[nMulIdx])) {
-          var common = hier.val[nMulIdx];
+        if (areEqual(tree.val[mulIdx].val[0], tree.val[nMulIdx])) {
+          var common = tree.val[nMulIdx];
           var rest1 = genLam();
-          var rest2 = genMul(hier.val[mulIdx].val.slice(1, hier.val[mulIdx].val.length));
+          var rest2 = genMul(tree.val[mulIdx].val.slice(1, tree.val[mulIdx].val.length));
 
           var _alt = genAdd([rest1, rest2]);
           var _seq = genMul([common, _alt]);
 
-          hier.val[nMulIdx] = _seq;
-          hier.val.splice(mulIdx, 1);
+          tree.val[nMulIdx] = _seq;
+          tree.val.splice(mulIdx, 1);
 
           return true;
           // if last is common a+ba or ba+a
-        } else if (areEqual(getLast(hier.val[mulIdx].val), hier.val[nMulIdx])) {
-          var common = hier.val[nMulIdx];
+        } else if (areEqual(getLast(tree.val[mulIdx].val), tree.val[nMulIdx])) {
+          var common = tree.val[nMulIdx];
           var rest1 = genLam();
-          var rest2 = genMul(hier.val[mulIdx].val.slice(0, hier.val[mulIdx].val.length - 1));
+          var rest2 = genMul(tree.val[mulIdx].val.slice(0, tree.val[mulIdx].val.length - 1));
 
           var _alt = genAdd([rest1, rest2]);
           var _seq = genMul([_alt, common]);
 
-          hier.val[nMulIdx] = _seq;
-          hier.val.splice(mulIdx, 1);
+          tree.val[nMulIdx] = _seq;
+          tree.val.splice(mulIdx, 1);
 
           return true;
         }
 
       } else if (bothMul != -1) {
         // if first is common ab+ac
-        if (areEqual(hier.val[bothMul[1]].val[0], hier.val[bothMul[0]].val[0])) {
-          var common = hier.val[bothMul[0]].val[0];
-          var rest1 = genMul(hier.val[bothMul[0]].val.slice(1));
-          var rest2 = genMul(hier.val[bothMul[1]].val.slice(1));
+        if (areEqual(tree.val[bothMul[1]].val[0], tree.val[bothMul[0]].val[0])) {
+          var common = tree.val[bothMul[0]].val[0];
+          var rest1 = genMul(tree.val[bothMul[0]].val.slice(1));
+          var rest2 = genMul(tree.val[bothMul[1]].val.slice(1));
 
           var _alt = genAdd([rest1, rest2]);
           var _seq = genMul([common, _alt]);
 
-          hier.val[i] = _seq;
-          hier.val.splice(bothMul[1], 1);
+          tree.val[i] = _seq;
+          tree.val.splice(bothMul[1], 1);
 
           return true;
           // if last is common ab+cb 
-        } else if (areEqual(getLast(hier.val[bothMul[1]].val), getLast(hier.val[bothMul[0]].val))) {
-          var common = getLast(hier.val[bothMul[0]].val);
-          var rest1 = genMul(hier.val[bothMul[0]].val.slice(0, hier.val[bothMul[0]].val.length - 1));
-          var rest2 = genMul(hier.val[bothMul[1]].val.slice(0, hier.val[bothMul[1]].val.length - 1));
+        } else if (areEqual(getLast(tree.val[bothMul[1]].val), getLast(tree.val[bothMul[0]].val))) {
+          var common = getLast(tree.val[bothMul[0]].val);
+          var rest1 = genMul(tree.val[bothMul[0]].val.slice(0, tree.val[bothMul[0]].val.length - 1));
+          var rest2 = genMul(tree.val[bothMul[1]].val.slice(0, tree.val[bothMul[1]].val.length - 1));
 
           var _alt = genAdd([rest1, rest2]);
           var _seq = genMul([_alt, common]);
 
-          hier.val[i] = _seq;
-          hier.val.splice(bothMul[1], 1);
+          tree.val[i] = _seq;
+          tree.val.splice(bothMul[1], 1);
 
           return true;
         }
@@ -211,19 +211,19 @@ function minimize_07(hier) {
 }
 
 // obj1 + obj2 = obj2 IF obj ⊆ obj2
-function minimize_05(hier) {
-  if (isAdd(hier) && hier.val.length >= 2) {
+function minimize_05(tree) {
+  if (isAdd(tree) && tree.val.length >= 2) {
     var found = -1;
 
-    for (var i = 0; i < hier.val.length; i++) {
-      var cur = hier.val[i];
+    for (var i = 0; i < tree.val.length; i++) {
+      var cur = tree.val[i];
 
-      for (var j = 0; j < hier.val.length; j++) {
+      for (var j = 0; j < tree.val.length; j++) {
         if (i == j) continue;
-        var cur2 = hier.val[j];
+        var cur2 = tree.val[j];
 
         if (isSub(cur, cur2)) {
-          hier.val.splice(i, 1);
+          tree.val.splice(i, 1);
 
           return true;
         }
@@ -234,15 +234,15 @@ function minimize_05(hier) {
 }
 
 // λ+AA* => A*
-function minimize_04(hier) {
-  if (isAdd(hier) && hier.val.length >= 2) {
+function minimize_04(tree) {
+  if (isAdd(tree) && tree.val.length >= 2) {
     var lamIndex = -1;
     var starIndex = -1;
     var sameStar = -1;
     var elemIndex = -1;
 
-    for (var i = 0; i < hier.val.length; i++) {
-      var cur = hier.val[i];
+    for (var i = 0; i < tree.val.length; i++) {
+      var cur = tree.val[i];
 
       if (isLam(cur)) {
         lamIndex = i;
@@ -266,8 +266,8 @@ function minimize_04(hier) {
       }
       if (lamIndex >= 0 && starIndex >= 0 && sameStar >= 0 && elemIndex >= 0) {
         if (starLit === normLit) {
-          hier.val[elemIndex].val.splice(sameStar, 1)
-          hier.val.splice(lamIndex, 1);
+          tree.val[elemIndex].val.splice(sameStar, 1)
+          tree.val.splice(lamIndex, 1);
 
           return true;
         }
@@ -279,22 +279,22 @@ function minimize_04(hier) {
 }
 
 // A+(B+C) -> A+B+C, A(BC) -> ABC, Associative property
-function minimize_03(hier) {
-  if ((isAdd(hier) || isMul(hier)) && hier.val.length >= 2) {
+function minimize_03(tree) {
+  if ((isAdd(tree) || isMul(tree)) && tree.val.length >= 2) {
     var found = -1, i;
 
-    for (i = 0; i < hier.val.length; i++) {
-      if (hier.val[i].key === hier.key) {
+    for (i = 0; i < tree.val.length; i++) {
+      if (tree.val[i].key === tree.key) {
         found = i;
       }
     }
 
     if (found >= 0) {
-      var node = hier.val[found];
-      hier.val.splice(found, 1);
+      var node = tree.val[found];
+      tree.val.splice(found, 1);
 
       for (i = 0; i < node.val.length; i++) {
-        hier.val.splice(found + i, 0, node.val[i]);
+        tree.val.splice(found + i, 0, node.val[i]);
       }
 
       return true;
@@ -305,18 +305,18 @@ function minimize_03(hier) {
 }
 
 // λA -> A
-function minimize_02(hier) {
-  if (isMul(hier) && hier.val.length >= 2) {
+function minimize_02(tree) {
+  if (isMul(tree) && tree.val.length >= 2) {
     var lamIndex = -1;
 
-    for (var i = 0; i < hier.val.length; i++) {
-      if (isLam(hier.val[i])) {
+    for (var i = 0; i < tree.val.length; i++) {
+      if (isLam(tree.val[i])) {
         lamIndex = i;
       }
     }
 
     if (lamIndex >= 0) {
-      hier.val.splice(lamIndex, 1);
+      tree.val.splice(lamIndex, 1);
       return true;
     }
   }
@@ -480,7 +480,7 @@ function genGlobArr(arr) {
   };
 }
 
-function arrToHier(arr) {
+function arrToTree(arr) {
   if (arr.length === 0) {
     return genType(types.MUL, []);
   }
@@ -579,10 +579,10 @@ function forthComp(globArr) {
 }
 
 function arrMinimize(arr, loopNo, rulesDone) {
-  var hier = arrToHier(arr);
-  var hierSimplified = minimize(hier, loopNo, rulesDone);
+  var tree = arrToTree(arr);
+  var treeSimplified = minimize(tree, loopNo, rulesDone);
 
-  return toArray(hierSimplified);
+  return toArray(treeSimplified);
 }
 
 var strEscapable = "λ+*()\\";
@@ -623,17 +623,17 @@ function strToArray(str) {
   return arr;
 }
 
-function strToHier(str) {
+function strToTree(str) {
   var arr = strToArray(str);
 
-  return arrToHier(arr);
+  return arrToTree(arr);
 }
 
 function strMinimize(str, loopNo, rulesDone) {
-  var hier = strToHier(str);
-  var hierMinimized = minimize(hier, loopNo, rulesDone);
+  var tree = strToTree(str);
+  var treeMinimized = minimize(tree, loopNo, rulesDone);
 
-  return toString(hierMinimized);
+  return toString(treeMinimized);
 }
 
 function areEqual(obj1, obj2) {
