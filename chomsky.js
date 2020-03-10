@@ -343,18 +343,12 @@ function delObj(obj) {
   }
 }
 
-function delAndCopy(o1, o2) {
-  var p;
+function copyObj(obj1, obj2) {
+  delObj(obj);
 
-  for (p in o1) {
-    if (o1.hasOwnProperty(p)) {
-      delete o1[p];
-    }
-  }
-
-  for (p in o2) {
-    if (o2.hasOwnProperty(p)) {
-      o1[p] = o2[p];
+  for (var o in obj2) {
+    if (o2.hasOwnProperty(o)) {
+      obj1[o] = obj2[o];
     }
   }
 }
@@ -392,7 +386,7 @@ _prec[types.STAR] = 2;
 _prec[types.LIT] = 3;
 
 function needParens(par, child) {
-  return _prec[par.key] >= _prec[child.key];
+  return _prec[par.key()] >= _prec[child.key()];
 }
 
 function _optParenToArray(par, child, arr) {

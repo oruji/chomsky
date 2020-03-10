@@ -31,12 +31,28 @@ class Tree {
     return JSON.stringify(this);
   }
 
-  toHier(hier) {
-    var tempHIer = this._toHier(this);
+  toHier() {
+    var myHier = {};
+    var tempHier = this._toHier(this);
 
-    delObj(hier);
-    hier.key = tempHIer.key;
-    hier.val = tempHIer.val;
+    delObj(myHier);
+
+    myHier.tag = tempHier.tag;
+
+    if (tempHier.tag === "literal") {
+      myHier.obj = tempHier.obj;
+
+    } else if (tempHier.tag === "sequence") {
+      myHier.elements = tempHier.elements;
+
+    } if (tempHier.tag === "kleene_star") {
+      myHier.expr = tempHier.expr;
+
+    } if (tempHier.tag === "alt") {
+      myHier.choices = tempHier.choices;
+    }
+
+    return myHier;
   }
 
   has(key) {
@@ -120,27 +136,39 @@ class Tree {
   }
 
   _toTree(hier) {
-    if (hier.key === types.LIT) {
+    if (hier.tag === "literal") {
       var obj = new Tree();
-      obj[hier.key] = hier.val;
+      obj[types.LIT] = hier.obj;
 
       return obj;
 
-    } else if (hier.key === types.STAR) {
+    } else if (hier.tag === "kleene_star") {
       var obj = new Tree();
-      obj[hier.key] = this._toTree(hier.val);
+      obj[types.STAR] = this._toTree(hier.expr);
 
       return obj;
 
-    } else if (hier.key === types.ADD || hier.key === types.MUL) {
+    } else if (hier.tag === "alt") {
       var arr = [];
 
-      for (var i = 0; i < hier.val.length; i++) {
-        arr.push(this._toTree(hier.val[i]));
+      for (var i = 0; i < hier.choices.length; i++) {
+        arr.push(this._toTree(hier.choices[i]));
       }
 
       var obj = new Tree();
-      obj[hier.key] = arr;
+      obj[types.ADD] = arr;
+
+      return obj;
+
+    } else if (hier.tag === "sequence") {
+      var arr = [];
+
+      for (var i = 0; i < hier.elements.length; i++) {
+        arr.push(this._toTree(hier.elements[i]));
+      }
+
+      var obj = new Tree();
+      obj[types.MUL] = arr;
 
       return obj;
 
@@ -183,15 +211,15 @@ class Tree {
   _toHier(tree) {
     if (tree.has(types.LIT)) {
       var obj = {};
-      obj.key = types.LIT;
-      obj.val = tree.val();
+      obj.tag = "literal";
+      obj.obj = tree.val();
 
       return obj;
 
     } else if (tree.has(types.STAR)) {
       var obj = {};
-      obj.key = types.STAR;
-      obj.val = this._toHier(tree.val());
+      obj.tag = "kleene_star";
+      obj.expr = this._toHier(tree.val());
 
       return obj;
 
@@ -202,8 +230,8 @@ class Tree {
         arr.push(this._toHier(tree.add[i]));
       }
 
-      obj.key = types.ADD;
-      obj.val = arr;
+      obj.tag = "alt";
+      obj.choices = arr;
       return obj;
 
     } else if (tree.has(types.MUL)) {
@@ -213,8 +241,8 @@ class Tree {
         arr.push(this._toHier(tree.val()[i]));
       }
 
-      obj.key = types.MUL;
-      obj.val = arr;
+      obj.tag = "sequence";
+      obj.elements = arr;
       return obj;
 
     } else {
