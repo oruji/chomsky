@@ -118,11 +118,88 @@ minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
 minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C)", 'type': '' });
 minimize_list.push({ 'func': minimize_08, 'rule': "λ* -> λ", 'type': '' });
+minimize_list.push({ 'func': minimize_09, 'rule': "(A*)* => A*", 'type': '' });
+minimize_list.push({ 'func': minimize_10, 'rule': "(A*B*)* => (A*+B*)*", 'type': '' });
+minimize_list.push({ 'func': minimize_11, 'rule': "(A+B*)* -> (A+B)*", 'type': '' });
+minimize_list.push({ 'func': minimize_12, 'rule': "A*AA* => AA*", 'type': '' });
+
+function minimize_12(tree) {
+  // A*AA* => AA*
+
+  if (tree.isMul() && tree.mul.length >= 3) {
+    for (var i = 1; i < tree.mul.length - 1; i++) {
+      if (tree.mul[i - 1].isStar() && tree.mul[i + 1].isStar()) {
+        if (areEqual(tree.mul[i - 1], tree.mul[i + 1]) &&
+          areEqual(tree.mul[i - 1].star, tree.mul[i])) {
+          tree.mul.splice(i - 1, 1);
+
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+function minimize_11(tree) {
+  // (A+B*)* -> (A+B)*
+
+  if (tree.isStar() && tree.star.isAdd()) {
+    var changed = false;
+
+    for (var i = 0; i < tree.star.add.length; i++) {
+      if (tree.star.add[i].isStar()) {
+        tree.star.add[i] = tree.star.add[i].star;
+
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function minimize_10(tree) {
+  // (A*B*)* => (A*+B*)*
+
+  if (tree.isStar() && tree.star.isMul() && tree.star.mul.length > 0) {
+    var check = true;
+
+    for (var i = 0; i < tree.star.mul.length; i++) {
+      if (!tree.star.mul[i].isStar()) {
+        check = false;
+        break;
+      }
+    }
+
+    if (check) {
+      tree.star.add = tree.star.mul;
+      delete tree.star.mul;
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function minimize_09(tree) {
+  // (A*)* => A*
+
+  if (tree.isStar() && tree.star.isStar()) {
+    tree.delOuter()
+
+    return true;
+  }
+
+  return false;
+}
 
 function minimize_08(tree) {
   // λ* -> λ
 
-  if (tree.isStar() && tree.val().isLam()) {
+  if (tree.isStar() && tree.star.isLam()) {
     tree.delOuter();
 
     return true;
@@ -134,29 +211,29 @@ function minimize_08(tree) {
 function minimize_07(tree) {
   // AB+AC -> A(B+C)
 
-  if (tree.isAdd() && tree.val().length >= 2) {
+  if (tree.isAdd() && tree.add.length >= 2) {
     var mulIdx = -1;
     var nMulIdx = -1;
     var bothMul = -1;
 
-    for (var i = 0; i < tree.val().length; i++) {
-      for (var j = i + 1; j < tree.val().length; j++) {
+    for (var i = 0; i < tree.add.length; i++) {
+      for (var j = i + 1; j < tree.add.length; j++) {
 
         // left is not mul and right is mul a+ab or a+ba
-        if (!tree.val()[i].isMul() && tree.val()[j].isMul()) {
+        if (!tree.add[i].isMul() && tree.add[j].isMul()) {
           nMulIdx = i;
           mulIdx = j;
           break;
 
           // lift is mul and right is not mul ab+a or ba+a
-        } else if (tree.val()[i].isMul() && !tree.val()[j].isMul()) {
+        } else if (tree.add[i].isMul() && !tree.add[j].isMul()) {
           mulIdx = i;
           nMulIdx = j;
           break;
 
           // both are mul ab+ac or ab+cb
-        } else if (tree.val()[i].isMul() && tree.val()[i].val().length >= 2
-          && tree.val()[j].isMul() && tree.val()[j].val().length >= 2) {
+        } else if (tree.add[i].isMul() && tree.add[i].mul.length >= 2
+          && tree.add[j].isMul() && tree.add[j].mul.length >= 2) {
           bothMul = [i, j];
           break;
         }
@@ -178,7 +255,7 @@ function minimize_07(tree) {
 
           return true;
           // if last is common a+ba or ba+a
-        } else if (areEqual(getLast(tree.val()[mulIdx].val), tree.val()[nMulIdx])) {
+        } else if (areEqual(getLast(tree.val()[mulIdx].val()), tree.val()[nMulIdx])) {
           var common = tree.val()[nMulIdx];
           var rest1 = genLam();
           var rest2 = genMul(tree.val()[mulIdx].val().slice(0, tree.val()[mulIdx].val().length - 1));
@@ -230,18 +307,18 @@ function minimize_07(tree) {
 function minimize_05(tree) {
   // A+B -> B IF A⊆B
 
-  if (tree.isAdd() && tree.val().length >= 2) {
+  if (tree.isAdd() && tree.add.length >= 2) {
     var found = -1;
 
-    for (var i = 0; i < tree.val().length; i++) {
-      var cur = tree.val()[i];
+    for (var i = 0; i < tree.add.length; i++) {
+      var cur = tree.add[i];
 
-      for (var j = 0; j < tree.val().length; j++) {
+      for (var j = 0; j < tree.add.length; j++) {
         if (i == j) continue;
-        var cur2 = tree.val()[j];
+        var cur2 = tree.add[j];
 
         if (isSub(cur, cur2)) {
-          tree.val().splice(i, 1);
+          tree.add.splice(i, 1);
 
           return true;
         }
@@ -254,32 +331,32 @@ function minimize_05(tree) {
 function minimize_04(tree) {
   // λ+AA* -> A*
 
-  if (tree.isAdd() && tree.val().length >= 2) {
+  if (tree.isAdd() && tree.add.length >= 2) {
     var lamIndex = -1;
     var starIndex = -1;
     var sameStar = -1;
     var elemIndex = -1;
 
-    for (var i = 0; i < tree.val().length; i++) {
-      var cur = tree.val()[i];
+    for (var i = 0; i < tree.add.length; i++) {
+      var cur = tree.add[i];
 
       if (cur.isLam()) {
         lamIndex = i;
 
-      } else if (cur.isMul() && cur.val().length === 2) {
+      } else if (cur.isMul() && cur.mul.length === 2) {
         elemIndex = i;
 
         var starLit = null;
         var normLit = null;
 
-        for (var j = 0; j < cur.val().length; j++) {
-          if (cur.val()[j].isStar()) {
+        for (var j = 0; j < cur.mul.length; j++) {
+          if (cur.mul[j].isStar()) {
             starIndex = j;
-            starLit = cur.val()[j].val().val();
+            starLit = cur.mul[j].star.val();
 
-          } else if (cur.val()[j].isLit()) {
+          } else if (cur.mul[j].isLit()) {
             sameStar = j;
-            normLit = cur.val()[j].val();
+            normLit = cur.mul[j].lit;
           }
         }
       }
@@ -327,17 +404,17 @@ function minimize_03(tree) {
 function minimize_02(tree) {
   // λA -> A
 
-  if (tree.isMul() && tree.val().length >= 2) {
+  if (tree.isMul() && tree.mul.length >= 2) {
     var lamIndex = -1;
 
-    for (var i = 0; i < tree.val().length; i++) {
-      if (tree.val()[i].isLam()) {
+    for (var i = 0; i < tree.mul.length; i++) {
+      if (tree.mul[i].isLam()) {
         lamIndex = i;
       }
     }
 
     if (lamIndex >= 0) {
-      tree.val().splice(lamIndex, 1);
+      tree.mul.splice(lamIndex, 1);
       return true;
     }
   }
