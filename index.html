@@ -21,9 +21,9 @@
 
       inVar = inVar.split("$").join("λ")
 
-      var minimum = strMinimize(inVar);
-
       try {
+        var minimum = strMinimize(inVar);
+
         var counter = 1;
         while (!(minimum === inVar)) {
           var outVar = minimize_step(inVar);
@@ -50,11 +50,11 @@
           inVar = outVar[0];
           counter++;
         }
+
+        $("#outVar").append("<div class='minimum'>" + minimum + "</div>");
       } catch (err) {
         $("#myError").text(err.message);
       }
-
-      $("#outVar").append("<div class='minimum'>" + minimum + "</div>");
     }
 
     // diff color

@@ -117,6 +117,19 @@ minimize_list.push({ 'func': minimize_03, 'rule': "A(BC) -> ABC", 'type': '' });
 minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
 minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C)", 'type': '' });
+minimize_list.push({ 'func': minimize_08, 'rule': "λ* -> λ", 'type': '' });
+
+function minimize_08(tree) {
+  // λ* -> λ
+
+  if (tree.isStar() && tree.val().isLam()) {
+    tree.delOuter();
+
+    return true;
+  }
+
+  return false;
+}
 
 function minimize_07(tree) {
   // AB+AC -> A(B+C)

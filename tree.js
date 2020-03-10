@@ -241,9 +241,9 @@ class Tree {
       var str = "";
       for (var i = 0; i < tree.mul.length; i++) {
         str += this._toStrL(tree.mul[i]);
-        if (i != tree.mul.length - 1) {
-          str += ".";
-        }
+        // if (i != tree.mul.length - 1) {
+        //   str += ".";
+        // }
       }
 
       return "[" + str + "]";
