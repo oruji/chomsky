@@ -73,8 +73,11 @@ function minimize_rec(tree, ruleFunc) {
 
   var childArr = [];
 
-  if (tree.isAdd() || tree.isMul() || tree.isStar()) {
+  if (tree.isAdd() || tree.isMul()) {
     childArr = tree.val();
+
+  } else if (tree.isStar()) {
+    childArr = [tree.val()];
   }
 
   for (var i = 0; i < childArr.length; i++) {
@@ -115,8 +118,9 @@ minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
 minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C)", 'type': '' });
 
-// AB+AC -> A(B+C)
 function minimize_07(tree) {
+  // AB+AC -> A(B+C)
+
   if (tree.isAdd() && tree.val().length >= 2) {
     var mulIdx = -1;
     var nMulIdx = -1;
@@ -210,8 +214,9 @@ function minimize_07(tree) {
   return false;
 }
 
-// A+B=B IF A⊆B
 function minimize_05(tree) {
+  // A+B -> B IF A⊆B
+
   if (tree.isAdd() && tree.val().length >= 2) {
     var found = -1;
 
@@ -233,8 +238,9 @@ function minimize_05(tree) {
   return false;
 }
 
-// λ+AA* -> A*
 function minimize_04(tree) {
+  // λ+AA* -> A*
+
   if (tree.isAdd() && tree.val().length >= 2) {
     var lamIndex = -1;
     var starIndex = -1;
@@ -278,8 +284,9 @@ function minimize_04(tree) {
   return false;
 }
 
-// A(BC) -> ABC, Associative property
 function minimize_03(tree) {
+  // A(BC) -> ABC, Associative property
+
   if ((tree.isAdd() || tree.isMul()) && tree.val().length >= 2) {
     var found = -1, i;
 
@@ -304,8 +311,9 @@ function minimize_03(tree) {
   return false;
 }
 
-// λA -> A
 function minimize_02(tree) {
+  // λA -> A
+
   if (tree.isMul() && tree.val().length >= 2) {
     var lamIndex = -1;
 
@@ -324,8 +332,9 @@ function minimize_02(tree) {
   return false;
 }
 
-// (A) -> A
 function minimize_01(tree) {
+  // (A) -> A
+
   if ((tree.isAdd() || tree.isMul()) && tree.val().length === 1) {
     tree.delOuter();
 
