@@ -118,13 +118,13 @@ minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
 minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C)", 'type': '' });
 minimize_list.push({ 'func': minimize_08, 'rule': "λ* -> λ", 'type': '' });
-minimize_list.push({ 'func': minimize_09, 'rule': "(A*)* => A*", 'type': '' });
-minimize_list.push({ 'func': minimize_10, 'rule': "(A*B*)* => (A*+B*)*", 'type': '' });
+minimize_list.push({ 'func': minimize_09, 'rule': "(A*)* -> A*", 'type': '' });
+minimize_list.push({ 'func': minimize_10, 'rule': "(A*B*)* -> (A*+B*)*", 'type': '' });
 minimize_list.push({ 'func': minimize_11, 'rule': "(A+B*)* -> (A+B)*", 'type': '' });
-minimize_list.push({ 'func': minimize_12, 'rule': "A*AA* => AA*", 'type': '' });
+minimize_list.push({ 'func': minimize_12, 'rule': "A*AA* -> AA*", 'type': '' });
 
 function minimize_12(tree) {
-  // A*AA* => AA*
+  // A*AA* -> AA*
 
   if (tree.isMul() && tree.mul.length >= 3) {
     for (var i = 1; i < tree.mul.length - 1; i++) {
@@ -161,7 +161,7 @@ function minimize_11(tree) {
 }
 
 function minimize_10(tree) {
-  // (A*B*)* => (A*+B*)*
+  // (A*B*)* -> (A*+B*)*
 
   if (tree.isStar() && tree.star.isMul() && tree.star.mul.length > 0) {
     var check = true;
@@ -185,7 +185,7 @@ function minimize_10(tree) {
 }
 
 function minimize_09(tree) {
-  // (A*)* => A*
+  // (A*)* -> A*
 
   if (tree.isStar() && tree.star.isStar()) {
     tree.delOuter()
@@ -434,24 +434,6 @@ function minimize_01(tree) {
   return false;
 }
 
-function delObj(obj) {
-  for (var o in obj) {
-    if (obj.hasOwnProperty(o)) {
-      delete obj[o];
-    }
-  }
-}
-
-function copyObj(obj1, obj2) {
-  delObj(obj);
-
-  for (var o in obj2) {
-    if (o2.hasOwnProperty(o)) {
-      obj1[o] = obj2[o];
-    }
-  }
-}
-
 function genType(type, item) {
   var tree = new Tree();
   tree[type] = item;
@@ -657,6 +639,59 @@ function strMinimize(str, loopNo, rulesDone) {
   return treeMinimized.toString();
 }
 
+function isSub(tree1, tree2) {
+
+  if (areEqual(tree1, tree2)) {
+    // obj = obj
+    return true;
+  }
+
+  if (tree2.isStar()) {
+    if (tree1.isLam()) {
+      // λ = obj*
+      return true;
+
+    } else if (areEqual(tree1, tree2.val())) {
+      // obj = obj*
+      return true;
+
+    } else if (tree1.isMul()) {
+      // check all elements of array
+      if (tree1.val().every((val, i, arr) => areEqual(val, arr[0]))) {
+        // objobjobj = obj*
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// get last element of an array
+function getLast(arr, num) {
+  if (num === undefined)
+    num = 1;
+  return arr[arr.length - num];
+}
+
+function delObj(obj) {
+  for (var o in obj) {
+    if (obj.hasOwnProperty(o)) {
+      delete obj[o];
+    }
+  }
+}
+
+function copyObj(obj1, obj2) {
+  delObj(obj);
+
+  for (var o in obj2) {
+    if (o2.hasOwnProperty(o)) {
+      obj1[o] = obj2[o];
+    }
+  }
+}
+
 function areEqual(obj1, obj2) {
   if (obj1 === obj2) {
     return true;
@@ -711,39 +746,4 @@ function areEqual(obj1, obj2) {
   }
 
   return true;
-}
-
-function isSub(tree1, tree2) {
-
-  if (areEqual(tree1, tree2)) {
-    // obj = obj
-    return true;
-  }
-
-  if (tree2.isStar()) {
-    if (tree1.isLam()) {
-      // λ = obj*
-      return true;
-
-    } else if (areEqual(tree1, tree2.val())) {
-      // obj = obj*
-      return true;
-
-    } else if (tree1.isMul()) {
-      // check all elements of array
-      if (tree1.val().every((val, i, arr) => areEqual(val, arr[0]))) {
-        // objobjobj = obj*
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
-// get last element of an array
-function getLast(arr, num) {
-  if (num === undefined)
-    num = 1;
-  return arr[arr.length - num];
 }
