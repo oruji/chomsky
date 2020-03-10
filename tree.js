@@ -38,6 +38,10 @@ class Tree {
     return this._toStr(this).trim();
   }
 
+  toString5() {
+    return this._toStrL(this).trim();
+  }
+
   toHier() {
     var myHier = {};
     var tempHier = this._toHier(this);
@@ -186,11 +190,11 @@ class Tree {
 
   _toStr(tree, tab = "") {
     if (tree.has(types.LIT)) {
-      return "\"" + tree.lit + "\"";
+      return "L\"" + tree.lit + "\"";
 
     } else if (tree.has(types.STAR)) {
       tab += "  ";
-      return "star\n" + tab + this._toStr(tree.star, tab);
+      return "S\n" + tab + this._toStr(tree.star, tab);
 
     } else if (tree.has(types.ADD)) {
       var str = "";
@@ -199,7 +203,7 @@ class Tree {
         str += this._toStr(tree.add[i], tab) + "\n" + tab;
       }
 
-      return "add\n" + tab + str;
+      return "A\n" + tab + str;
 
     } else if (tree.has(types.MUL)) {
       var str = "";
@@ -208,7 +212,41 @@ class Tree {
         str += this._toStr(tree.mul[i], tab) + "\n" + tab;
       }
 
-      return "mul\n" + tab + str;
+      return "M\n" + tab + str;
+
+    } else {
+      return null;
+    }
+  }
+
+  _toStrL(tree) {
+    if (tree.has(types.LIT)) {
+      return tree.lit;
+
+    } else if (tree.has(types.STAR)) {
+      return this._toStrL(tree.star) + "*";
+
+    } else if (tree.has(types.ADD)) {
+      var str = "";
+      for (var i = 0; i < tree.add.length; i++) {
+        str += this._toStrL(tree.add[i]);
+        if (i != tree.add.length - 1) {
+          str += "+";
+        }
+      }
+
+      return "(" + str + ")";
+
+    } else if (tree.has(types.MUL)) {
+      var str = "";
+      for (var i = 0; i < tree.mul.length; i++) {
+        str += this._toStrL(tree.mul[i]);
+        if (i != tree.mul.length - 1) {
+          str += ".";
+        }
+      }
+
+      return "[" + str + "]";
 
     } else {
       return null;
