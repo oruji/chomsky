@@ -379,78 +379,6 @@ function genStar(item) {
   return genType(types.STAR, item);
 }
 
-var _prec = {};
-_prec[types.ADD] = 0;
-_prec[types.MUL] = 1;
-_prec[types.STAR] = 2;
-_prec[types.LIT] = 3;
-
-function needParens(par, child) {
-  return _prec[par.key()] >= _prec[child.key()];
-}
-
-function _optParenToArray(par, child, arr) {
-  var parens = needParens(par, child);
-
-  if (parens) {
-    arr.push("(");
-  }
-  _dispatchToArray(child, arr);
-
-  if (parens) {
-    arr.push(")");
-  }
-}
-
-function _binOpToArray(regex, arr, parts, operand) {
-  for (var i = 0; i < parts.length; i++) {
-    if (operand !== undefined && i > 0) {
-      arr.push(operand);
-    }
-    _optParenToArray(regex, parts[i], arr);
-  }
-}
-
-function addToArray(regex, arr) {
-  _binOpToArray(regex, arr, regex.val(), "+");
-}
-
-function mulToArray(regex, arr) {
-  _binOpToArray(regex, arr, regex.val());
-}
-
-function starToArray(regex, arr) {
-  _optParenToArray(regex, regex.val(), arr);
-  arr.push("*");
-}
-
-function litToArray(regex, arr) {
-  arr.push(regex.val());
-}
-
-var _toArrayFuns = {};
-_toArrayFuns[types.ADD] = addToArray;
-_toArrayFuns[types.MUL] = mulToArray;
-_toArrayFuns[types.STAR] = starToArray;
-_toArrayFuns[types.LIT] = litToArray;
-
-function _dispatchToArray(regex, arr) {
-  return _toArrayFuns[regex.key()](regex, arr);
-}
-
-function toArray(regex) {
-  var arr = [];
-  _dispatchToArray(regex, arr);
-  return arr;
-}
-
-function toString(regex) {
-  var arr = toArray(regex);
-  var str = arr.join("");
-
-  return str;
-}
-
 function RegError(message, position) {
   this.name = "RegError";
   this.message = message;
@@ -627,7 +555,7 @@ function strMinimize(str, loopNo, rulesDone) {
   var tree = strToTree(str);
   var treeMinimized = minimize(tree, loopNo, rulesDone);
 
-  return toString(treeMinimized);
+  return treeMinimized.toString();
 }
 
 function areEqual(obj1, obj2) {

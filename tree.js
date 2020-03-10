@@ -20,7 +20,10 @@ class Tree {
   }
 
   toString() {
-    return this._toStr(this).trim();
+    var arr = this.toArray();
+    var str = arr.join("");
+
+    return str;
   }
 
   toString2() {
@@ -29,6 +32,10 @@ class Tree {
 
   toString3() {
     return JSON.stringify(this);
+  }
+
+  toString4() {
+    return this._toStr(this).trim();
   }
 
   toHier() {
@@ -248,5 +255,70 @@ class Tree {
     } else {
       return null;
     }
+  }
+
+  // array codes
+  needParens(par, child) {
+    var _prec = {};
+    _prec[types.ADD] = 0;
+    _prec[types.MUL] = 1;
+    _prec[types.STAR] = 2;
+    _prec[types.LIT] = 3;
+
+    return _prec[par.key()] >= _prec[child.key()];
+  }
+
+  _optParenToArray(par, child, arr) {
+    var parens = this.needParens(par, child);
+
+    if (parens) {
+      arr.push("(");
+    }
+    this._dispatchToArray(child, arr);
+
+    if (parens) {
+      arr.push(")");
+    }
+  }
+
+  _binOpToArray(regex, arr, parts, operand) {
+    for (var i = 0; i < parts.length; i++) {
+      if (operand !== undefined && i > 0) {
+        arr.push(operand);
+      }
+      this._optParenToArray(regex, parts[i], arr);
+    }
+  }
+
+  addToArray(regex, arr) {
+    regex._binOpToArray(regex, arr, regex.val(), "+");
+  }
+
+  mulToArray(regex, arr) {
+    regex._binOpToArray(regex, arr, regex.val());
+  }
+
+  starToArray(regex, arr) {
+    regex._optParenToArray(regex, regex.val(), arr);
+    arr.push("*");
+  }
+
+  litToArray(regex, arr) {
+    arr.push(regex.val());
+  }
+
+  _dispatchToArray(regex, arr) {
+    var _toArrayFuns = {};
+    _toArrayFuns[types.ADD] = this.addToArray;
+    _toArrayFuns[types.MUL] = this.mulToArray;
+    _toArrayFuns[types.STAR] = this.starToArray;
+    _toArrayFuns[types.LIT] = this.litToArray;
+    return _toArrayFuns[regex.key()](regex, arr);
+  }
+
+  toArray() {
+    var arr = [];
+    this._dispatchToArray(this, arr);
+    return arr;
   }
 }
