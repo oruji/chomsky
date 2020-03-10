@@ -110,36 +110,36 @@ function minimize_step(regex) {
 
 minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
 minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
-// minimize_list.push({ 'func': minimize_03, 'rule': "A(BC) -> ABC", 'type': '' });
-// minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* => A*", 'type': '' });
-// minimize_list.push({ 'func': minimize_05, 'rule': "obj1 + obj2 = obj2 IF obj ⊆ obj2", 'type': '' });
-// minimize_list.push({ 'func': minimize_07, 'rule': "(ab+ac) -> a(b+c)", 'type': '' });
+minimize_list.push({ 'func': minimize_03, 'rule': "A(BC) -> ABC", 'type': '' });
+minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* -> A*", 'type': '' });
+minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
+minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C)", 'type': '' });
 
-// (ab+ac) -> a(b+c)
+// AB+AC -> A(B+C)
 function minimize_07(tree) {
-  if (isAdd(tree) && tree.val.length >= 2) {
+  if (tree.isAdd() && tree.val().length >= 2) {
     var mulIdx = -1;
     var nMulIdx = -1;
     var bothMul = -1;
 
-    for (var i = 0; i < tree.val.length; i++) {
-      for (var j = i + 1; j < tree.val.length; j++) {
+    for (var i = 0; i < tree.val().length; i++) {
+      for (var j = i + 1; j < tree.val().length; j++) {
 
         // left is not mul and right is mul a+ab or a+ba
-        if (!isMul(tree.val[i]) && isMul(tree.val[j])) {
+        if (!tree.val()[i].isMul() && tree.val()[j].isMul()) {
           nMulIdx = i;
           mulIdx = j;
           break;
 
           // lift is mul and right is not mul ab+a or ba+a
-        } else if (isMul(tree.val[i]) && !isMul(tree.val[j])) {
+        } else if (tree.val()[i].isMul() && !tree.val()[j].isMul()) {
           mulIdx = i;
           nMulIdx = j;
           break;
 
           // both are mul ab+ac or ab+cb
-        } else if (isMul(tree.val[i]) && tree.val[i].val.length >= 2
-          && isMul(tree.val[j]) && tree.val[j].val.length >= 2) {
+        } else if (tree.val()[i].isMul() && tree.val()[i].val().length >= 2
+          && tree.val()[j].isMul() && tree.val()[j].val().length >= 2) {
           bothMul = [i, j];
           break;
         }
@@ -148,58 +148,58 @@ function minimize_07(tree) {
       // if one of them are not multiply
       if (mulIdx >= 0 && nMulIdx >= 0) {
         // if first is common a+ab or ab+a
-        if (areEqual(tree.val[mulIdx].val[0], tree.val[nMulIdx])) {
-          var common = tree.val[nMulIdx];
+        if (areEqual(tree.val()[mulIdx].val()[0], tree.val()[nMulIdx])) {
+          var common = tree.val()[nMulIdx];
           var rest1 = genLam();
-          var rest2 = genMul(tree.val[mulIdx].val.slice(1, tree.val[mulIdx].val.length));
+          var rest2 = genMul(tree.val()[mulIdx].val().slice(1, tree.val()[mulIdx].val().length));
 
           var _alt = genAdd([rest1, rest2]);
           var _seq = genMul([common, _alt]);
 
-          tree.val[nMulIdx] = _seq;
-          tree.val.splice(mulIdx, 1);
+          tree.val()[nMulIdx] = _seq;
+          tree.val().splice(mulIdx, 1);
 
           return true;
           // if last is common a+ba or ba+a
-        } else if (areEqual(getLast(tree.val[mulIdx].val), tree.val[nMulIdx])) {
-          var common = tree.val[nMulIdx];
+        } else if (areEqual(getLast(tree.val()[mulIdx].val), tree.val()[nMulIdx])) {
+          var common = tree.val()[nMulIdx];
           var rest1 = genLam();
-          var rest2 = genMul(tree.val[mulIdx].val.slice(0, tree.val[mulIdx].val.length - 1));
+          var rest2 = genMul(tree.val()[mulIdx].val().slice(0, tree.val()[mulIdx].val().length - 1));
 
           var _alt = genAdd([rest1, rest2]);
           var _seq = genMul([_alt, common]);
 
-          tree.val[nMulIdx] = _seq;
-          tree.val.splice(mulIdx, 1);
+          tree.val()[nMulIdx] = _seq;
+          tree.val().splice(mulIdx, 1);
 
           return true;
         }
 
       } else if (bothMul != -1) {
         // if first is common ab+ac
-        if (areEqual(tree.val[bothMul[1]].val[0], tree.val[bothMul[0]].val[0])) {
-          var common = tree.val[bothMul[0]].val[0];
-          var rest1 = genMul(tree.val[bothMul[0]].val.slice(1));
-          var rest2 = genMul(tree.val[bothMul[1]].val.slice(1));
+        if (areEqual(tree.val()[bothMul[1]].val()[0], tree.val()[bothMul[0]].val()[0])) {
+          var common = tree.val()[bothMul[0]].val()[0];
+          var rest1 = genMul(tree.val()[bothMul[0]].val().slice(1));
+          var rest2 = genMul(tree.val()[bothMul[1]].val().slice(1));
 
           var _alt = genAdd([rest1, rest2]);
           var _seq = genMul([common, _alt]);
 
-          tree.val[i] = _seq;
-          tree.val.splice(bothMul[1], 1);
+          tree.val()[i] = _seq;
+          tree.val().splice(bothMul[1], 1);
 
           return true;
           // if last is common ab+cb 
-        } else if (areEqual(getLast(tree.val[bothMul[1]].val), getLast(tree.val[bothMul[0]].val))) {
-          var common = getLast(tree.val[bothMul[0]].val);
-          var rest1 = genMul(tree.val[bothMul[0]].val.slice(0, tree.val[bothMul[0]].val.length - 1));
-          var rest2 = genMul(tree.val[bothMul[1]].val.slice(0, tree.val[bothMul[1]].val.length - 1));
+        } else if (areEqual(getLast(tree.val()[bothMul[1]].val), getLast(tree.val()[bothMul[0]].val))) {
+          var common = getLast(tree.val()[bothMul[0]].val);
+          var rest1 = genMul(tree.val()[bothMul[0]].val().slice(0, tree.val()[bothMul[0]].val().length - 1));
+          var rest2 = genMul(tree.val()[bothMul[1]].val().slice(0, tree.val()[bothMul[1]].val().length - 1));
 
           var _alt = genAdd([rest1, rest2]);
           var _seq = genMul([_alt, common]);
 
-          tree.val[i] = _seq;
-          tree.val.splice(bothMul[1], 1);
+          tree.val()[i] = _seq;
+          tree.val().splice(bothMul[1], 1);
 
           return true;
         }
@@ -210,20 +210,20 @@ function minimize_07(tree) {
   return false;
 }
 
-// obj1 + obj2 = obj2 IF obj ⊆ obj2
+// A+B=B IF A⊆B
 function minimize_05(tree) {
-  if (isAdd(tree) && tree.val.length >= 2) {
+  if (tree.isAdd() && tree.val().length >= 2) {
     var found = -1;
 
-    for (var i = 0; i < tree.val.length; i++) {
-      var cur = tree.val[i];
+    for (var i = 0; i < tree.val().length; i++) {
+      var cur = tree.val()[i];
 
-      for (var j = 0; j < tree.val.length; j++) {
+      for (var j = 0; j < tree.val().length; j++) {
         if (i == j) continue;
-        var cur2 = tree.val[j];
+        var cur2 = tree.val()[j];
 
         if (isSub(cur, cur2)) {
-          tree.val.splice(i, 1);
+          tree.val().splice(i, 1);
 
           return true;
         }
@@ -233,41 +233,41 @@ function minimize_05(tree) {
   return false;
 }
 
-// λ+AA* => A*
+// λ+AA* -> A*
 function minimize_04(tree) {
-  if (isAdd(tree) && tree.val.length >= 2) {
+  if (tree.isAdd() && tree.val().length >= 2) {
     var lamIndex = -1;
     var starIndex = -1;
     var sameStar = -1;
     var elemIndex = -1;
 
-    for (var i = 0; i < tree.val.length; i++) {
-      var cur = tree.val[i];
+    for (var i = 0; i < tree.val().length; i++) {
+      var cur = tree.val()[i];
 
-      if (isLam(cur)) {
+      if (cur.isLam()) {
         lamIndex = i;
 
-      } else if (isMul(cur) && cur.val.length === 2) {
+      } else if (cur.isMul() && cur.val().length === 2) {
         elemIndex = i;
 
         var starLit = null;
         var normLit = null;
 
-        for (var j = 0; j < cur.val.length; j++) {
-          if (isStar(cur.val[j])) {
+        for (var j = 0; j < cur.val().length; j++) {
+          if (cur.val()[j].isStar()) {
             starIndex = j;
-            starLit = cur.val[j].val.val;
+            starLit = cur.val()[j].val().val();
 
-          } else if (isLit(cur.val[j])) {
+          } else if (cur.val()[j].isLit()) {
             sameStar = j;
-            normLit = cur.val[j].val;
+            normLit = cur.val()[j].val();
           }
         }
       }
       if (lamIndex >= 0 && starIndex >= 0 && sameStar >= 0 && elemIndex >= 0) {
         if (starLit === normLit) {
-          tree.val[elemIndex].val.splice(sameStar, 1)
-          tree.val.splice(lamIndex, 1);
+          tree.val()[elemIndex].val().splice(sameStar, 1)
+          tree.val().splice(lamIndex, 1);
 
           return true;
         }
@@ -278,23 +278,23 @@ function minimize_04(tree) {
   return false;
 }
 
-// A+(B+C) -> A+B+C, A(BC) -> ABC, Associative property
+// A(BC) -> ABC, Associative property
 function minimize_03(tree) {
-  if ((isAdd(tree) || isMul(tree)) && tree.val.length >= 2) {
+  if ((tree.isAdd() || tree.isMul()) && tree.val().length >= 2) {
     var found = -1, i;
 
-    for (i = 0; i < tree.val.length; i++) {
-      if (tree.val[i].key === tree.key) {
+    for (i = 0; i < tree.val().length; i++) {
+      if (tree.val()[i].key() === tree.key()) {
         found = i;
       }
     }
 
     if (found >= 0) {
-      var node = tree.val[found];
-      tree.val.splice(found, 1);
+      var node = tree.val()[found];
+      tree.val().splice(found, 1);
 
-      for (i = 0; i < node.val.length; i++) {
-        tree.val.splice(found + i, 0, node.val[i]);
+      for (i = 0; i < node.val().length; i++) {
+        tree.val().splice(found + i, 0, node.val()[i]);
       }
 
       return true;
@@ -304,7 +304,7 @@ function minimize_03(tree) {
   return false;
 }
 
-// λobj -> obj
+// λA -> A
 function minimize_02(tree) {
   if (tree.isMul() && tree.val().length >= 2) {
     var lamIndex = -1;
@@ -324,7 +324,7 @@ function minimize_02(tree) {
   return false;
 }
 
-// (obj) -> obj
+// (A) -> A
 function minimize_01(tree) {
   if ((tree.isAdd() || tree.isMul()) && tree.val().length === 1) {
     tree.delOuter();
@@ -614,24 +614,25 @@ function areEqual(obj1, obj2) {
   return true;
 }
 
-function isSub(inVar, inVar2) {
+function isSub(tree1, tree2) {
 
-  if (areEqual(inVar, inVar2)) {
+  if (areEqual(tree1, tree2)) {
     // obj = obj
     return true;
   }
 
-  if (isStar(inVar2)) {
-    if (isLam(inVar)) {
+  if (tree2.isStar()) {
+    if (tree1.isLam()) {
       // λ = obj*
       return true;
 
-    } else if (areEqual(inVar, inVar2.val)) {
+    } else if (areEqual(tree1, tree2.val())) {
       // obj = obj*
       return true;
 
-    } else if (isMul(inVar)) {
-      if (inVar.val.every((val, i, arr) => areEqual(val, arr[0]))) {
+    } else if (tree1.isMul()) {
+      // check all elements of array
+      if (tree1.val().every((val, i, arr) => areEqual(val, arr[0]))) {
         // objobjobj = obj*
         return true;
       }
@@ -641,6 +642,7 @@ function isSub(inVar, inVar2) {
   return false;
 }
 
+// get last element of an array
 function getLast(arr, num) {
   if (num === undefined)
     num = 1;
