@@ -315,6 +315,7 @@ function minimize_05(tree) {
 
       for (var j = 0; j < tree.add.length; j++) {
         if (i == j) continue;
+
         var cur2 = tree.add[j];
 
         if (isSub(cur, cur2)) {
@@ -640,31 +641,22 @@ function strMinimize(str, loopNo, rulesDone) {
 }
 
 function isSub(tree1, tree2) {
+  var fsm1 = noam.re.string.toAutomaton(tree1.toString().split(specs.LAMBDA).join("$"));
+  var fsm2 = noam.re.string.toAutomaton(tree2.toString().split(specs.LAMBDA).join("$"));
 
-  if (areEqual(tree1, tree2)) {
-    // obj = obj
-    return true;
-  }
+  // merge alphabet, both alphabet must be the same
+  var arr3 = arrMerge(fsm1.alphabet, fsm2.alphabet);
 
-  if (tree2.isStar()) {
-    if (tree1.isLam()) {
-      // λ = obj*
-      return true;
+  fsm1.alphabet = arr3;
+  fsm2.alphabet = arr3;
 
-    } else if (areEqual(tree1, tree2.val())) {
-      // obj = obj*
-      return true;
+  fsm1 = noam.fsm.convertEnfaToNfa(fsm1);
+  fsm1 = noam.fsm.convertNfaToDfa(fsm1);
 
-    } else if (tree1.isMul()) {
-      // check all elements of array
-      if (tree1.val().every((val, i, arr) => areEqual(val, arr[0]))) {
-        // objobjobj = obj*
-        return true;
-      }
-    }
-  }
+  fsm2 = noam.fsm.convertEnfaToNfa(fsm2);
+  fsm2 = noam.fsm.convertNfaToDfa(fsm2);
 
-  return false;
+  return noam.fsm.isSubset(fsm2, fsm1);
 }
 
 // get last element of an array
@@ -746,4 +738,20 @@ function areEqual(obj1, obj2) {
   }
 
   return true;
+}
+
+function arrUnique(array) {
+  var a = array.concat();
+  for (var i = 0; i < a.length; ++i) {
+    for (var j = i + 1; j < a.length; ++j) {
+      if (a[i] === a[j])
+        a.splice(j--, 1);
+    }
+  }
+
+  return a;
+}
+
+function arrMerge(arr1, arr2) {
+  return arrUnique(arr1.concat(arr2));
 }
