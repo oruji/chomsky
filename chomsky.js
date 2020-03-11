@@ -122,6 +122,34 @@ minimize_list.push({ 'func': minimize_09, 'rule': "(A*)* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_10, 'rule': "(A*B*)* -> (A*+B*)*", 'type': '' });
 minimize_list.push({ 'func': minimize_11, 'rule': "(A+B*)* -> (A+B)*", 'type': '' });
 minimize_list.push({ 'func': minimize_12, 'rule': "A*AA* -> AA*", 'type': '' });
+minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
+
+function minimize_13(tree) {
+  // A*B* -> B* IF A*⊆B*
+
+  if (tree.isMul() && tree.mul.length >= 2) {
+    var found = -1;
+
+    for (var i = 0; i < tree.mul.length; i++) {
+      var cur = tree.mul[i];
+
+      for (var j = 0; j < tree.mul.length; j++) {
+        if (i == j) continue;
+
+        var cur2 = tree.mul[j];
+
+        if (cur.isStar() && cur2.isStar) {
+          if (isSub(cur, cur2)) {
+            tree.mul.splice(i, 1);
+
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
 
 function minimize_12(tree) {
   // A*AA* -> AA*
