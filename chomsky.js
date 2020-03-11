@@ -147,20 +147,14 @@ function minimize_13(tree) {
   if (tree.isMul() && tree.mul.length >= 2) {
     var found = -1;
 
-    for (var i = 0; i < tree.mul.length; i++) {
+    for (var i = 0; i < tree.mul.length-1; i++) {
       var cur = tree.mul[i];
 
-      for (var j = 0; j < tree.mul.length; j++) {
-        if (i == j) continue;
+      if (tree.mul[i].isStar() && tree.mul[i + 1].isStar()) {
+        if (isSub(tree.mul[i], tree.mul[i + 1])) {
+          tree.mul.splice(i, 1);
 
-        var cur2 = tree.mul[j];
-
-        if (cur.isStar() && cur2.isStar) {
-          if (isSub(cur, cur2)) {
-            tree.mul.splice(i, 1);
-
-            return true;
-          }
+          return true;
         }
       }
     }
