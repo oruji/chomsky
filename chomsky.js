@@ -145,14 +145,18 @@ function minimize_13(tree) {
   // A*B* -> B* IF A*⊆B*
 
   if (tree.isMul() && tree.mul.length >= 2) {
-    var found = -1;
-
-    for (var i = 0; i < tree.mul.length-1; i++) {
+    for (var i = 0; i < tree.mul.length - 1; i++) {
       var cur = tree.mul[i];
 
       if (tree.mul[i].isStar() && tree.mul[i + 1].isStar()) {
         if (isSub(tree.mul[i], tree.mul[i + 1])) {
           tree.mul.splice(i, 1);
+
+          return true;
+        }
+
+        if (isSub(tree.mul[i + 1], tree.mul[i])) {
+          tree.mul.splice(i + 1, 1);
 
           return true;
         }
@@ -696,101 +700,4 @@ function isSub(tree1, tree2) {
   fsm2 = noam.fsm.convertNfaToDfa(fsm2);
 
   return noam.fsm.isSubset(fsm2, fsm1);
-}
-
-// get last element of an array
-function getLast(arr, num) {
-  if (num === undefined)
-    num = 1;
-  return arr[arr.length - num];
-}
-
-function delObj(obj) {
-  for (var o in obj) {
-    if (obj.hasOwnProperty(o)) {
-      delete obj[o];
-    }
-  }
-}
-
-function copyObj(obj1, obj2) {
-  delObj(obj);
-
-  for (var o in obj2) {
-    if (o2.hasOwnProperty(o)) {
-      obj1[o] = obj2[o];
-    }
-  }
-}
-
-function areEqual(obj1, obj2) {
-  if (obj1 === obj2) {
-    return true;
-  }
-
-  if (obj1 instanceof Date && obj2 instanceof Date) {
-    return obj1.getTime() === obj2.getTime();
-  }
-
-  if (obj1 instanceof RegExp && obj2 instanceof RegExp) {
-    return obj1.source === obj2.source &&
-      obj1.global === obj2.global &&
-      obj1.multiline === obj2.multiline &&
-      obj1.lastIndex === obj2.lastIndex &&
-      obj1.ignoreCase === obj2.ignoreCase;
-  }
-
-  if (!(obj1 instanceof Object) || !(obj2 instanceof Object)) {
-    return false;
-  }
-
-  if (typeof obj1 === 'undefined' || typeof obj2 === 'undefined') {
-    return false;
-  }
-
-  if (obj1.constructor !== obj2.constructor) {
-    return false;
-  }
-
-  for (var p in obj1) {
-    if (!(p in obj2)) {
-      return false;
-    }
-
-    if (obj1[p] === obj2[p]) {
-      continue;
-    }
-
-    if (typeof (obj1[p]) !== "object") {
-      return false;
-    }
-
-    if (!(areEqual(obj1[p], obj2[p]))) {
-      return false;
-    }
-  }
-
-  for (p in obj2) {
-    if (!(p in obj1)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function arrUnique(array) {
-  var a = array.concat();
-  for (var i = 0; i < a.length; ++i) {
-    for (var j = i + 1; j < a.length; ++j) {
-      if (a[i] === a[j])
-        a.splice(j--, 1);
-    }
-  }
-
-  return a;
-}
-
-function arrMerge(arr1, arr2) {
-  return arrUnique(arr1.concat(arr2));
 }
