@@ -123,6 +123,23 @@ minimize_list.push({ 'func': minimize_10, 'rule': "(A*B*)* -> (A*+B*)*", 'type':
 minimize_list.push({ 'func': minimize_11, 'rule': "(A+B*)* -> (A+B)*", 'type': '' });
 minimize_list.push({ 'func': minimize_12, 'rule': "A*AA* -> AA*", 'type': '' });
 minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
+minimize_list.push({ 'func': minimize_14, 'rule': "(A+λ)* -> (A)*", 'type': '' });
+
+
+function minimize_14(tree) {
+  // (A+λ)* -> (A)*
+  if (tree.isStar() && tree.star.isAdd() && tree.star.add.length >= 2) {
+    for (var i = 0; i < tree.star.add.length; i++) {
+      if (tree.star.add[i].isLam()) {
+        tree.star.add.splice(i, 1);
+
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
 
 function minimize_13(tree) {
   // A*B* -> B* IF A*⊆B*
