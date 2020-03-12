@@ -136,23 +136,17 @@ function minimize_16(tree) {
         if (tree.mul[i].isStar() && tree.mul[i + 1].isStar()) {
           if (tree.mul[i].star.isMul() && tree.mul[i].star.mul.length >= 2) {
             var found = -1;
-            // if ("A*"B)*"A*"
-            if (areEqual(tree.mul[i + 1], tree.mul[i].star.mul[0])) {
-              found = 0;
 
-              // if ("AAA*"B)*"A*"
-            } else {
-              for (var f = 0; f <= tree.mul[i].star.mul.length - 1; f++) {
-                if (areEqual(tree.mul[i + 1], tree.mul[i].star.mul[f])) {
-                  found = f;
-                  break;
+            for (var f = 0; f <= tree.mul[i].star.mul.length - 1; f++) {
+              if (areEqual(tree.mul[i + 1], tree.mul[i].star.mul[f])) {
+                found = f;
+                break;
 
-                } else if (areEqual(tree.mul[i + 1].star, tree.mul[i].star.mul[f])) {
-                  continue;
+              } else if (areEqual(tree.mul[i + 1].star, tree.mul[i].star.mul[f])) {
+                continue;
 
-                } else {
-                  break;
-                }
+              } else {
+                break;
               }
             }
 
@@ -194,23 +188,17 @@ function minimize_15(tree) {
         if (tree.mul[i].isStar() && tree.mul[i + 1].isStar()) {
           if (tree.mul[i + 1].star.isMul() && tree.mul[i + 1].star.mul.length >= 2) {
             var found = -1;
-            // if "A*"(B"A*")*
-            if (areEqual(tree.mul[i], arrLast(tree.mul[i + 1].star.mul))) {
-              found = tree.mul[i + 1].star.mul.length - 1;
 
-              // if "A*"(B"A*"AA)*
-            } else {
-              for (var f = tree.mul[i + 1].star.mul.length - 1; f >= 0; f--) {
-                if (areEqual(tree.mul[i], tree.mul[i + 1].star.mul[f])) {
-                  found = f;
-                  break;
+            for (var f = tree.mul[i + 1].star.mul.length - 1; f >= 0; f--) {
+              if (areEqual(tree.mul[i], tree.mul[i + 1].star.mul[f])) {
+                found = f;
+                break;
 
-                } else if (areEqual(tree.mul[i].star, tree.mul[i + 1].star.mul[f])) {
-                  continue;
+              } else if (areEqual(tree.mul[i].star, tree.mul[i + 1].star.mul[f])) {
+                continue;
 
-                } else {
-                  break;
-                }
+              } else {
+                break;
               }
             }
 
@@ -264,8 +252,6 @@ function minimize_13(tree) {
 
   if (tree.isMul() && tree.mul.length >= 2) {
     for (var i = 0; i < tree.mul.length - 1; i++) {
-      var cur = tree.mul[i];
-
       if (tree.mul[i].isStar() && tree.mul[i + 1].isStar()) {
         if (isSub(tree.mul[i], tree.mul[i + 1])) {
           tree.mul.splice(i, 1);
