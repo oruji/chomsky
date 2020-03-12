@@ -121,7 +121,6 @@ minimize_list.push({ 'func': minimize_08, 'rule': "λ* -> λ", 'type': '' });
 minimize_list.push({ 'func': minimize_09, 'rule': "(A*)* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_10, 'rule': "(A*B*)* -> (A*+B*)*", 'type': '' });
 minimize_list.push({ 'func': minimize_11, 'rule': "(A+B*)* -> (A+B)*", 'type': '' });
-minimize_list.push({ 'func': minimize_12, 'rule': "A*AA* -> AA*", 'type': '' });
 minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
 minimize_list.push({ 'func': minimize_14, 'rule': "(A+λ)* -> (A)*", 'type': '' });
 minimize_list.push({ 'func': minimize_15, 'rule': "A*(BA*)* -> (A+B)*", 'type': '' });
@@ -252,35 +251,44 @@ function minimize_13(tree) {
 
   if (tree.isMul() && tree.mul.length >= 2) {
     for (var i = 0; i < tree.mul.length - 1; i++) {
-      if (tree.mul[i].isStar() && tree.mul[i + 1].isStar()) {
-        if (isSub(tree.mul[i], tree.mul[i + 1])) {
-          tree.mul.splice(i, 1);
+      found = -1;
+      found2 = -1;
+      if (tree.mul[i].isStar()) {
+        found = i;
+        if (tree.mul[i + 1].isStar()) {
+          found2 = i + 1;
 
-          return true;
+        } else {
+          for (var j = i + 1; j < tree.mul.length - 1; j++) {
+            if (!tree.mul[j].isStar()) {
+              if (tree.mul[j + 1].isStar()) {
+                if (areEqual(tree.mul[j], tree.mul[j + 1].star)) {
+                  found2 = j + 1;
+                  break;
+
+                } else if (areEqual(tree.mul[j], tree.mul[j + 1])) {
+                  continue;
+
+                } else {
+                  break;
+                }
+              }
+            }
+          }
         }
 
-        if (isSub(tree.mul[i + 1], tree.mul[i])) {
-          tree.mul.splice(i + 1, 1);
+        if (found >= 0 && found2 >= 0) {
+          if (isSub(tree.mul[found], tree.mul[found2])) {
+            tree.mul.splice(found, 1);
 
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
+            return true;
+          }
 
-function minimize_12(tree) {
-  // A*AA* -> AA*
+          if (isSub(tree.mul[found2], tree.mul[found])) {
+            tree.mul.splice(found2, 1);
 
-  if (tree.isMul() && tree.mul.length >= 3) {
-    for (var i = 1; i < tree.mul.length - 1; i++) {
-      if (tree.mul[i - 1].isStar() && tree.mul[i + 1].isStar()) {
-        if (areEqual(tree.mul[i - 1], tree.mul[i + 1]) &&
-          areEqual(tree.mul[i - 1].star, tree.mul[i])) {
-          tree.mul.splice(i - 1, 1);
-
-          return true;
+            return true;
+          }
         }
       }
     }
