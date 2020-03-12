@@ -125,6 +125,65 @@ minimize_list.push({ 'func': minimize_12, 'rule': "A*AA* -> AA*", 'type': '' });
 minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
 minimize_list.push({ 'func': minimize_14, 'rule': "(A+λ)* -> (A)*", 'type': '' });
 minimize_list.push({ 'func': minimize_15, 'rule': "A*(BA*)* -> (A+B)*", 'type': '' });
+minimize_list.push({ 'func': minimize_16, 'rule': "(A*B)*A* -> (A+B)*", 'type': '' });
+
+function minimize_16(tree) {
+  // (A*B)*A* -> (A+B)*
+
+  try {
+    if (tree.isMul() && tree.mul.length >= 2) {
+      for (var i = 0; i <= tree.mul.length - 1; i++) {
+        if (tree.mul[i].isStar() && tree.mul[i + 1].isStar()) {
+          if (tree.mul[i].star.isMul() && tree.mul[i].star.mul.length >= 2) {
+            var found = -1;
+            // if ("A*"B)*"A*"
+            if (areEqual(tree.mul[i + 1], tree.mul[i].star.mul[0])) {
+              found = 0;
+
+              // if ("AAA*"B)*"A*"
+            } else {
+              for (var f = 0; f <= tree.mul[i].star.mul.length - 1; f++) {
+                if (areEqual(tree.mul[i + 1], tree.mul[i].star.mul[f])) {
+                  found = f;
+                  break;
+
+                } else if (areEqual(tree.mul[i + 1].star, tree.mul[i].star.mul[f])) {
+                  continue;
+
+                } else {
+                  break;
+                }
+              }
+            }
+
+            if (found >= 0) {
+              // remove found element of first mul (A*B)*A* -> (B)*A*
+              tree.mul[i].star.mul.splice(found, 1);
+
+              // B
+              var myMul = genMul(tree.mul[i].star.mul);
+              // A+B
+              var myAdd = genAdd([tree.mul[i + 1].star, myMul]);
+
+              // replace first Mul content (B)*A* -> (A+B)*A*
+              tree.mul[i].star = myAdd;
+
+              // remove second mul (A+B)*A* -> (A+B)*
+              tree.mul.splice(i + 1, 1);
+
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+  } catch (err) {
+    console.log(err.message);
+  }
+
+  return false;
+}
 
 function minimize_15(tree) {
   // A*(BA*)* -> (A+B)*
@@ -135,11 +194,11 @@ function minimize_15(tree) {
         if (tree.mul[i].isStar() && tree.mul[i + 1].isStar()) {
           if (tree.mul[i + 1].star.isMul() && tree.mul[i + 1].star.mul.length >= 2) {
             var found = -1;
-            // if "A*"(B"A*")
+            // if "A*"(B"A*")*
             if (areEqual(tree.mul[i], arrLast(tree.mul[i + 1].star.mul))) {
               found = tree.mul[i + 1].star.mul.length - 1;
 
-              // if "A*"(B"A*"AA)
+              // if "A*"(B"A*"AA)*
             } else {
               for (var f = tree.mul[i + 1].star.mul.length - 1; f >= 0; f--) {
                 if (areEqual(tree.mul[i], tree.mul[i + 1].star.mul[f])) {
@@ -167,7 +226,7 @@ function minimize_15(tree) {
               // replace second Mul content A*(B)* -> A*(A+B)*
               tree.mul[i + 1].star = myAdd;
 
-              // remove first mul A*(A+B) -> (A+B)*
+              // remove first mul A*(A+B)* -> (A+B)*
               tree.mul.splice(i, 1);
 
               return true;
