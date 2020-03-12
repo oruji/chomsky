@@ -1,4 +1,4 @@
-function getLast(arr, num) {
+function arrLast(arr, num) {
     if (num === undefined)
         num = 1;
     return arr[arr.length - num];

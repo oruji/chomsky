@@ -124,10 +124,69 @@ minimize_list.push({ 'func': minimize_11, 'rule': "(A+B*)* -> (A+B)*", 'type': '
 minimize_list.push({ 'func': minimize_12, 'rule': "A*AA* -> AA*", 'type': '' });
 minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
 minimize_list.push({ 'func': minimize_14, 'rule': "(A+λ)* -> (A)*", 'type': '' });
+minimize_list.push({ 'func': minimize_15, 'rule': "A*(BA*)* -> (A+B)*", 'type': '' });
 
+function minimize_15(tree) {
+  // A*(BA*)* -> (A+B)*
+
+  try {
+    if (tree.isMul() && tree.mul.length >= 2) {
+      for (var i = 0; i <= tree.mul.length - 1; i++) {
+        if (tree.mul[i].isStar() && tree.mul[i + 1].isStar()) {
+          if (tree.mul[i + 1].star.isMul() && tree.mul[i + 1].star.mul.length >= 2) {
+            var found = -1;
+            // if "A*"(B"A*")
+            if (areEqual(tree.mul[i], arrLast(tree.mul[i + 1].star.mul))) {
+              found = tree.mul[i + 1].star.mul.length - 1;
+
+              // if "A*"(B"A*"AA)
+            } else {
+              for (var f = tree.mul[i + 1].star.mul.length - 1; f >= 0; f--) {
+                if (areEqual(tree.mul[i], tree.mul[i + 1].star.mul[f])) {
+                  found = f;
+                  break;
+
+                } else if (areEqual(tree.mul[i].star, tree.mul[i + 1].star.mul[f])) {
+                  continue;
+
+                } else {
+                  break;
+                }
+              }
+            }
+
+            if (found >= 0) {
+              // remove last element of second mul A*(BA*)* -> A*(B)*
+              tree.mul[i + 1].star.mul.splice(found, 1);
+
+              // B
+              var myMul = genMul(tree.mul[i + 1].star.mul);
+              // A+B
+              var myAdd = genAdd([tree.mul[i].star, myMul]);
+
+              // replace second Mul content A*(B)* -> A*(A+B)*
+              tree.mul[i + 1].star = myAdd;
+
+              // remove first mul A*(A+B) -> (A+B)*
+              tree.mul.splice(i, 1);
+
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+  } catch (err) {
+    console.log(err.message);
+  }
+
+  return false;
+}
 
 function minimize_14(tree) {
   // (A+λ)* -> (A)*
+
   if (tree.isStar() && tree.star.isAdd() && tree.star.add.length >= 2) {
     for (var i = 0; i < tree.star.add.length; i++) {
       if (tree.star.add[i].isLam()) {
@@ -298,7 +357,7 @@ function minimize_07(tree) {
 
           return true;
           // if last is common a+ba or ba+a
-        } else if (areEqual(getLast(tree.add[mulIdx].val()), tree.add[nMulIdx])) {
+        } else if (areEqual(arrLast(tree.add[mulIdx].val()), tree.add[nMulIdx])) {
           var common = tree.add[nMulIdx];
           var rest1 = genLam();
           var rest2 = genMul(tree.add[mulIdx].val().slice(0, tree.add[mulIdx].val().length - 1));
@@ -327,8 +386,8 @@ function minimize_07(tree) {
 
           return true;
           // if last is common ab+cb 
-        } else if (areEqual(getLast(tree.add[bothMul[1]].val()), getLast(tree.add[bothMul[0]].val()))) {
-          var common = getLast(tree.add[bothMul[0]].val());
+        } else if (areEqual(arrLast(tree.add[bothMul[1]].val()), arrLast(tree.add[bothMul[0]].val()))) {
+          var common = arrLast(tree.add[bothMul[0]].val());
           var rest1 = genMul(tree.add[bothMul[0]].val().slice(0, tree.add[bothMul[0]].val().length - 1));
           var rest2 = genMul(tree.add[bothMul[1]].val().slice(0, tree.add[bothMul[1]].val().length - 1));
 
@@ -573,7 +632,7 @@ function secondComp(globArr) {
   }
 
   if (itemArr.length === 0) {
-    throw new RegError("Unexpected regex array: empty choice subexpression at index " +
+    throw new RegError("Unexpected regex array: empty choice substaression at index " +
       globArr.index, globArr.index);
   }
 
@@ -594,7 +653,7 @@ function thirdComp(globArr) {
 function forthComp(globArr) {
   if (globArr.select() === "(") {
     globArr.next();
-    var expr = firstComp(globArr);
+    var star = firstComp(globArr);
 
     if (globArr.select() !== ")") {
       throw new RegError("Unexpected regex array: missing matching right parenthesis at index " +
@@ -603,7 +662,7 @@ function forthComp(globArr) {
 
     globArr.next();
 
-    return expr;
+    return star;
 
   } else if (globArr.select() === specs.LAMBDA) {
     globArr.next();
@@ -614,7 +673,7 @@ function forthComp(globArr) {
     return undefined;
 
   } else if (globArr.select() === "*") {
-    throw new RegError("Unexpected regex array: empty subexpression before Kleene star at index " +
+    throw new RegError("Unexpected regex array: empty substaression before Kleene star at index " +
       globArr.index, globArr.index);
 
   } else {
