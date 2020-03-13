@@ -116,7 +116,6 @@ minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
 minimize_list.push({ 'func': minimize_03, 'rule': "A(BC) -> ABC", 'type': '' });
 minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
-minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C)", 'type': '' });
 minimize_list.push({ 'func': minimize_08, 'rule': "λ* -> λ", 'type': '' });
 minimize_list.push({ 'func': minimize_09, 'rule': "(A*)* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_10, 'rule': "(A*B*)* -> (A*+B*)*", 'type': '' });
@@ -125,6 +124,7 @@ minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type
 minimize_list.push({ 'func': minimize_14, 'rule': "(A+λ)* -> (A)*", 'type': '' });
 minimize_list.push({ 'func': minimize_15, 'rule': "A*(BA*)* -> (A+B)*", 'type': '' });
 minimize_list.push({ 'func': minimize_16, 'rule': "(A*B)*A* -> (A+B)*", 'type': '' });
+// minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C)", 'type': '' });
 
 function minimize_16(tree) {
   // (A*B)*A* -> (A+B)*
@@ -250,46 +250,63 @@ function minimize_13(tree) {
   // A*B* -> B* IF A*⊆B*
 
   if (tree.isMul() && tree.mul.length >= 2) {
+    found = -1;
+    found2 = -1;
+
     for (var i = 0; i < tree.mul.length - 1; i++) {
-      found = -1;
-      found2 = -1;
+      // A*
       if (tree.mul[i].isStar()) {
         found = i;
+
+        // A* _*
         if (tree.mul[i + 1].isStar()) {
           found2 = i + 1;
+          break;
 
+          // A*
         } else {
           for (var j = i + 1; j < tree.mul.length - 1; j++) {
+            // A* _
             if (!tree.mul[j].isStar()) {
+
+              // A* _ _*
               if (tree.mul[j + 1].isStar()) {
+                // A*BB*
                 if (areEqual(tree.mul[j], tree.mul[j + 1].star)) {
                   found2 = j + 1;
                   break;
 
-                } else if (areEqual(tree.mul[j], tree.mul[j + 1])) {
-                  continue;
+                  // A*AB*
+                } else if (areEqual(tree.mul[i].star, tree.mul[j])) {
+                  found2 = j + 1;
+                  break;
 
+                  // A*BC*
                 } else {
                   break;
                 }
+
+                // A* B B
+              } else if (areEqual(tree.mul[j], tree.mul[j + 1])
+                || (areEqual(tree.mul[i].star, tree.mul[j]) && areEqual(tree.mul[j], tree.mul[j + 1]))) {
+                continue;
               }
             }
           }
         }
+      }
+    }
+    if (found >= 0 && found2 >= 0) {
+      if (isSub(tree.mul[found], tree.mul[found2])) {
+        tree.mul.splice(found, 1);
 
-        if (found >= 0 && found2 >= 0) {
-          if (isSub(tree.mul[found], tree.mul[found2])) {
-            tree.mul.splice(found, 1);
+        return true;
+      }
 
-            return true;
-          }
+      if (isSub(tree.mul[found2], tree.mul[found])) {
+        tree.mul.splice(found2, 1);
 
-          if (isSub(tree.mul[found2], tree.mul[found])) {
-            tree.mul.splice(found2, 1);
-
-            return true;
-          }
-        }
+        return true;
       }
     }
   }
