@@ -183,43 +183,79 @@ function minimize_15(tree) {
 
   try {
     if (tree.isMul() && tree.mul.length >= 2) {
+      var secStar = -1;
+      var found = -1;
+
+      LoopI:
       for (var i = 0; i <= tree.mul.length - 1; i++) {
-        if (tree.mul[i].isStar() && tree.mul[i + 1].isStar()) {
-          if (tree.mul[i + 1].star.isMul() && tree.mul[i + 1].star.mul.length >= 2) {
-            var found = -1;
+        // A*
+        if (tree.mul[i].isStar()) {
+          // A* _*
+          if (tree.mul[i + 1].isStar()) {
+            secStar = i + 1;
+            // A* _
+          } else {
+            LoopJ:
+            for (var j = i + 1; j < tree.mul.length - 1; j++) {
+              // A* _
+              if (!tree.mul[j].isStar()) {
+                // A* A
+                if (areEqual(tree.mul[i].star, tree.mul[j])) {
+                  // A* A _*
+                  if (tree.mul[j + 1].isStar()) {
+                    secStar = j + 1;
 
-            for (var f = tree.mul[i + 1].star.mul.length - 1; f >= 0; f--) {
-              if (areEqual(tree.mul[i], tree.mul[i + 1].star.mul[f])) {
-                found = f;
-                break;
+                    // A* A A
+                  } else if (areEqual(tree.mul[j], tree.mul[j + 1])) {
+                    continue;
 
-              } else if (areEqual(tree.mul[i].star, tree.mul[i + 1].star.mul[f])) {
-                continue;
-
+                    // A* A B
+                  } else {
+                    break;
+                  }
+                }
+                // A* B
               } else {
                 break;
               }
             }
+          }
 
-            if (found >= 0) {
-              // remove last element of second mul A*(BA*)* -> A*(B)*
-              tree.mul[i + 1].star.mul.splice(found, 1);
+          if (secStar >= 0) {
+            if (tree.mul[secStar].star.isMul() && tree.mul[secStar].star.mul.length >= 2) {
+              for (var f = tree.mul[secStar].star.mul.length - 1; f >= 0; f--) {
+                if (areEqual(tree.mul[i], tree.mul[secStar].star.mul[f])) {
+                  found = f;
+                  break LoopI;
 
-              // B
-              var myMul = genMul(tree.mul[i + 1].star.mul);
-              // A+B
-              var myAdd = genAdd([tree.mul[i].star, myMul]);
+                } else if (areEqual(tree.mul[i].star, tree.mul[secStar].star.mul[f])) {
+                  continue;
 
-              // replace second Mul content A*(B)* -> A*(A+B)*
-              tree.mul[i + 1].star = myAdd;
-
-              // remove first mul A*(A+B)* -> (A+B)*
-              tree.mul.splice(i, 1);
-
-              return true;
+                } else {
+                  break;
+                }
+              }
             }
           }
         }
+      }
+
+      if (found >= 0) {
+        // remove last element of second mul A*(BA*)* -> A*(B)*
+        tree.mul[secStar].star.mul.splice(found, 1);
+
+        // B
+        var myMul = genMul(tree.mul[secStar].star.mul);
+        // A+B
+        var myAdd = genAdd([tree.mul[i].star, myMul]);
+
+        // replace second Mul content A*(B)* -> A*(A+B)*
+        tree.mul[secStar].star = myAdd;
+
+        // remove first mul A*(A+B)* -> (A+B)*
+        tree.mul.splice(i, 1);
+
+        return true;
       }
     }
 
