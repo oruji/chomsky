@@ -124,7 +124,7 @@ minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type
 minimize_list.push({ 'func': minimize_14, 'rule': "(A+λ)* -> (A)*", 'type': '' });
 minimize_list.push({ 'func': minimize_15, 'rule': "A*(BA*)* -> (A+B)*", 'type': '' });
 minimize_list.push({ 'func': minimize_16, 'rule': "(A*B)*A* -> (A+B)*", 'type': '' });
-// minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C)", 'type': '' });
+minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C)", 'type': '' });
 
 function minimize_16(tree) {
   // (A*B)*A* -> (A+B)*
@@ -433,7 +433,7 @@ function minimize_07(tree) {
           mulIdx = j;
           break;
 
-          // lift is mul and right is not mul ab+a or ba+a
+          // left is mul and right is not mul ab+a or ba+a
         } else if (tree.add[i].isMul() && !tree.add[j].isMul()) {
           mulIdx = i;
           nMulIdx = j;
@@ -449,8 +449,24 @@ function minimize_07(tree) {
 
       // if one of them are not multiply
       if (mulIdx >= 0 && nMulIdx >= 0) {
-        // if first is common a+ab or ab+a
-        if (areEqual(tree.add[mulIdx].val()[0], tree.add[nMulIdx])) {
+
+        // if A*+A*BA*
+        if (tree.add[nMulIdx].isStar()
+          && areEqual(tree.add[nMulIdx], tree.add[mulIdx].mul[0])
+          && areEqual(tree.add[mulIdx].mul[0], arrLast(tree.add[mulIdx].mul))
+        ) {
+          var common = tree.add[nMulIdx];
+          var rest1 = genLam();
+          var rest2 = genMul(tree.add[mulIdx].val().slice(1, tree.add[mulIdx].mul.length - 1));
+          var _alt = genAdd([rest1, rest2]);
+          var _seq = genMul([common, _alt, common]);
+          tree.add[nMulIdx] = _seq;
+          tree.add.splice(mulIdx, 1);
+
+          return true;
+
+          // if first is common A+AB or AB+A
+        } else if (areEqual(tree.add[mulIdx].val()[0], tree.add[nMulIdx])) {
           var common = tree.add[nMulIdx];
           var rest1 = genLam();
           var rest2 = genMul(tree.add[mulIdx].val().slice(1, tree.add[mulIdx].val().length));
