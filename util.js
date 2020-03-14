@@ -93,3 +93,13 @@ function arrUnique(arr) {
 function arrMerge(arr1, arr2) {
     return arrUnique(arr1.concat(arr2));
 }
+
+function arrHasObj(arr, obj) {
+    for (var i = 0; i < arr.length; i++) {
+        if (areEqual(arr[i], obj)) {
+            return i;
+        }
+    }
+
+    return -1;
+}

@@ -126,6 +126,65 @@ minimize_list.push({ 'func': minimize_15, 'rule': "A*(BA*)* -> (A+B)*", 'type': 
 minimize_list.push({ 'func': minimize_16, 'rule': "(A*B)*A* -> (A+B)*", 'type': '' });
 minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C)", 'type': '' });
 
+function minimize_17(tree) {
+  // A(B+λ) -> AB+A
+
+  try {
+    if (tree.isMul() && tree.mul.length >= 2) {
+      var mulSing = -1;
+      var mulAdd = -1;
+      var addLam = -1;
+
+      for (var i = 0; i < tree.mul.length; i++) {
+        if (tree.mul[i].isAdd()) {
+          addLam = arrHasObj(tree.mul[i].add, genLam());
+          mulAdd = i;
+          mulSing = (i === 0) ? i + 1 : i - 1;
+
+          if (addLam >= 0) {
+
+            if (mulSing < mulAdd) {
+              // A(B+λ) -> A(AB+λ)
+              for (var j = 0; j < tree.mul[i].add.length; j++) {
+                if (tree.mul[i].add[j].isLam()) {
+                  continue;
+
+                } else {
+                  tree.mul[i].add[j] = genMul([tree.mul[mulSing], tree.mul[i].add[j]]);
+                }
+              }
+
+            } else {
+              // (B+λ)A -> (BA+λ)A
+              for (var j = 0; j < tree.mul[i].add.length; j++) {
+                if (tree.mul[i].add[j].isLam()) {
+                  continue;
+
+                } else {
+                  tree.mul[i].add[j] = genMul([tree.mul[i].add[j], tree.mul[mulSing]]);
+                }
+              }
+            }
+
+            // A(AB+λ) -> A(B+A)
+            tree.mul[i].add[addLam] = tree.mul[mulSing];
+
+            // A(AB+A) - > (AB+A)
+            tree.mul.splice(mulSing, 1);
+
+            return true;
+          }
+        }
+      }
+    }
+
+  } catch (err) {
+    console.log(err.message);
+  }
+
+  return false;
+}
+
 function minimize_16(tree) {
   // (A*B)*A* -> (A+B)*
 
