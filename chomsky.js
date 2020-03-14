@@ -427,8 +427,15 @@ function minimize_07(tree) {
     for (var i = 0; i < tree.add.length; i++) {
       for (var j = i + 1; j < tree.add.length; j++) {
 
+        // both are mul AB+AC or AB+CB
+        if (tree.add[i].isMul() && tree.add[i].mul.length >= 2
+          && tree.add[j].isMul() && tree.add[j].mul.length >= 2) {
+          bothMul = [i, j];
+          break;
+        }
+
         // left is not mul and right is mul a+ab or a+ba
-        if (!tree.add[i].isMul() && tree.add[j].isMul()) {
+        else if (!tree.add[i].isMul() && tree.add[j].isMul()) {
           nMulIdx = i;
           mulIdx = j;
           break;
@@ -438,19 +445,42 @@ function minimize_07(tree) {
           mulIdx = i;
           nMulIdx = j;
           break;
-
-          // both are mul ab+ac or ab+cb
-        } else if (tree.add[i].isMul() && tree.add[i].mul.length >= 2
-          && tree.add[j].isMul() && tree.add[j].mul.length >= 2) {
-          bothMul = [i, j];
-          break;
         }
       }
 
-      // if one of them are not multiply
-      if (mulIdx >= 0 && nMulIdx >= 0) {
+      if (bothMul != -1) {
+        // if first is common AB+AC
+        if (areEqual(tree.add[bothMul[1]].val()[0], tree.add[bothMul[0]].val()[0])) {
+          var common = tree.add[bothMul[0]].val()[0];
+          var rest1 = genMul(tree.add[bothMul[0]].val().slice(1));
+          var rest2 = genMul(tree.add[bothMul[1]].val().slice(1));
 
-        // if A*+A*BA*
+          var _alt = genAdd([rest1, rest2]);
+          var _seq = genMul([common, _alt]);
+
+          tree.add[i] = _seq;
+          tree.add.splice(bothMul[1], 1);
+
+          return true;
+          // if last is common AB+CB 
+        } else if (areEqual(arrLast(tree.add[bothMul[1]].val()), arrLast(tree.add[bothMul[0]].val()))) {
+          var common = arrLast(tree.add[bothMul[0]].val());
+          var rest1 = genMul(tree.add[bothMul[0]].val().slice(0, tree.add[bothMul[0]].val().length - 1));
+          var rest2 = genMul(tree.add[bothMul[1]].val().slice(0, tree.add[bothMul[1]].val().length - 1));
+
+          var _alt = genAdd([rest1, rest2]);
+          var _seq = genMul([_alt, common]);
+
+          tree.add[i] = _seq;
+          tree.add.splice(bothMul[1], 1);
+
+          return true;
+        }
+      }
+
+      // one of them are not multiply
+      else if (mulIdx >= 0 && nMulIdx >= 0) {
+        // A*+A*BA*
         if (tree.add[nMulIdx].isStar()
           && areEqual(tree.add[nMulIdx], tree.add[mulIdx].mul[0])
           && areEqual(tree.add[mulIdx].mul[0], arrLast(tree.add[mulIdx].mul))
@@ -465,7 +495,7 @@ function minimize_07(tree) {
 
           return true;
 
-          // if first is common A+AB or AB+A
+          // first is common A+AB or AB+A
         } else if (areEqual(tree.add[mulIdx].val()[0], tree.add[nMulIdx])) {
           var common = tree.add[nMulIdx];
           var rest1 = genLam();
@@ -478,7 +508,7 @@ function minimize_07(tree) {
           tree.add.splice(mulIdx, 1);
 
           return true;
-          // if last is common a+ba or ba+a
+          // last is common A+BA or ba+a
         } else if (areEqual(arrLast(tree.add[mulIdx].val()), tree.add[nMulIdx])) {
           var common = tree.add[nMulIdx];
           var rest1 = genLam();
@@ -489,35 +519,6 @@ function minimize_07(tree) {
 
           tree.add[nMulIdx] = _seq;
           tree.add.splice(mulIdx, 1);
-
-          return true;
-        }
-
-      } else if (bothMul != -1) {
-        // if first is common ab+ac
-        if (areEqual(tree.add[bothMul[1]].val()[0], tree.add[bothMul[0]].val()[0])) {
-          var common = tree.add[bothMul[0]].val()[0];
-          var rest1 = genMul(tree.add[bothMul[0]].val().slice(1));
-          var rest2 = genMul(tree.add[bothMul[1]].val().slice(1));
-
-          var _alt = genAdd([rest1, rest2]);
-          var _seq = genMul([common, _alt]);
-
-          tree.add[i] = _seq;
-          tree.add.splice(bothMul[1], 1);
-
-          return true;
-          // if last is common ab+cb 
-        } else if (areEqual(arrLast(tree.add[bothMul[1]].val()), arrLast(tree.add[bothMul[0]].val()))) {
-          var common = arrLast(tree.add[bothMul[0]].val());
-          var rest1 = genMul(tree.add[bothMul[0]].val().slice(0, tree.add[bothMul[0]].val().length - 1));
-          var rest2 = genMul(tree.add[bothMul[1]].val().slice(0, tree.add[bothMul[1]].val().length - 1));
-
-          var _alt = genAdd([rest1, rest2]);
-          var _seq = genMul([_alt, common]);
-
-          tree.add[i] = _seq;
-          tree.add.splice(bothMul[1], 1);
 
           return true;
         }
@@ -556,39 +557,39 @@ function minimize_05(tree) {
 function minimize_04(tree) {
   // λ+AA* -> A*
 
+  // "λ" & "AA*"
   if (tree.isAdd() && tree.add.length >= 2) {
-    var lamIndex = -1;
-    var starIndex = -1;
-    var sameStar = -1;
-    var elemIndex = -1;
+    var lamIdx = -1;
+    var starIdx = -1;
+    var nStarIdx = -1;
+    var elemIdx = -1;
 
     for (var i = 0; i < tree.add.length; i++) {
-      var cur = tree.add[i];
+      if (tree.add[i].isLam()) {
+        lamIdx = i;
 
-      if (cur.isLam()) {
-        lamIndex = i;
+      } else if (tree.add[i].isMul() && tree.add[i].mul.length === 2) {
+        elemIdx = i;
 
-      } else if (cur.isMul() && cur.mul.length === 2) {
-        elemIndex = i;
+        var starVal = null;
+        var nStarVal = null;
 
-        var starLit = null;
-        var normLit = null;
+        for (var j = 0; j < tree.add[i].mul.length; j++) {
+          if (tree.add[i].mul[j].isStar()) {
+            starIdx = j;
+            starVal = tree.add[i].mul[j].star.val();
 
-        for (var j = 0; j < cur.mul.length; j++) {
-          if (cur.mul[j].isStar()) {
-            starIndex = j;
-            starLit = cur.mul[j].star.val();
-
-          } else if (cur.mul[j].isLit()) {
-            sameStar = j;
-            normLit = cur.mul[j].lit;
+          } else {
+            nStarIdx = j;
+            nStarVal = tree.add[i].mul[j].val();
           }
         }
       }
-      if (lamIndex >= 0 && starIndex >= 0 && sameStar >= 0 && elemIndex >= 0) {
-        if (starLit === normLit) {
-          tree.val()[elemIndex].val().splice(sameStar, 1)
-          tree.val().splice(lamIndex, 1);
+
+      if (lamIdx >= 0 && starIdx >= 0 && nStarIdx >= 0 && elemIdx >= 0) {
+        if (starVal === nStarVal) {
+          tree.add[elemIdx].mul.splice(nStarIdx, 1)
+          tree.add.splice(lamIdx, 1);
 
           return true;
         }
