@@ -12,39 +12,32 @@ var specs = {
 var minimize_list = [];
 
 function minimize(tree, param) {
-  var treeCopy = tree.clone();
 
+  // init param
   if (param === undefined) {
     param = {};
   }
 
-  var paramCopy = JSON.parse(JSON.stringify(param));
-
-  if (paramCopy.loopNo === undefined) {
-    paramCopy.loopNo = null;
+  if (param.loopNo === undefined) {
+    param.loopNo = null;
   }
 
-  if (paramCopy.rulesDone === undefined) {
-    paramCopy.rulesDone = null;
-
-  } else {
-    paramCopy.rulesDone = param.rulesDone;
+  if (param.rulesDone === undefined) {
+    param.rulesDone = null;
   }
 
   var ruleDone = "temp";
   var counter = 0;
 
-  while (ruleDone !== null && (paramCopy.loopNo === null || counter < paramCopy.loopNo)) {
-    ruleDone = minimize_loop(treeCopy, minimize_list);
+  while (ruleDone !== null && (param.loopNo === null || counter < param.loopNo)) {
+    ruleDone = minimize_loop(tree, minimize_list);
 
-    if (ruleDone !== null && paramCopy.rulesDone !== null) {
-      paramCopy.rulesDone.push(ruleDone);
+    if (ruleDone !== null && param.rulesDone !== null) {
+      param.rulesDone.push(ruleDone);
     }
 
-    counter += 1;
+    counter++;
   }
-
-  return treeCopy;
 }
 
 function minimize_loop(tree, minArr) {
@@ -868,9 +861,10 @@ function forthComp(globArr) {
 
 function arrMinimize(arr, loopNo, rulesDone) {
   var tree = arrToTree(arr);
-  var treeSimplified = minimize(tree, loopNo, rulesDone);
 
-  return toArray(treeSimplified);
+  minimize(tree, loopNo, rulesDone);
+
+  return toArray(tree);
 }
 
 var strEscapable = "λ+*()\\";
@@ -919,9 +913,10 @@ function strToTree(str) {
 
 function strMinimize(str, loopNo, rulesDone) {
   var tree = strToTree(str);
-  var treeMinimized = minimize(tree, loopNo, rulesDone);
 
-  return treeMinimized.toString();
+  minimize(tree, loopNo, rulesDone);
+
+  return tree.toString();
 }
 
 function isSub(tree1, tree2) {
