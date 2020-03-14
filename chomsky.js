@@ -11,8 +11,16 @@ var specs = {
 
 var minimize_list = [];
 
-function minimize(tree, param) {
+function strMinimize(str, loopNo, rulesDone) {
+  var arr = strToArray(str);
+  var tree = arrToTree(arr);
 
+  minimize(tree, loopNo, rulesDone);
+
+  return tree.toString();
+}
+
+function minimize(tree, param) {
   // init param
   if (param === undefined) {
     param = {};
@@ -38,6 +46,8 @@ function minimize(tree, param) {
 
     counter++;
   }
+
+  console.log("end of while");
 }
 
 function minimize_loop(tree, minArr) {
@@ -903,20 +913,6 @@ function strToArray(str) {
   }
 
   return arr;
-}
-
-function strToTree(str) {
-  var arr = strToArray(str);
-
-  return arrToTree(arr);
-}
-
-function strMinimize(str, loopNo, rulesDone) {
-  var tree = strToTree(str);
-
-  minimize(tree, loopNo, rulesDone);
-
-  return tree.toString();
 }
 
 function isSub(tree1, tree2) {
