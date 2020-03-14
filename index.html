@@ -30,8 +30,8 @@
         while (!(minimum === inVar)) {
           var outVar = minimize_step(inVar);
 
-          var source = $('<span>' + inVar + '</span>');
-          var result = $('<span>' + outVar[0] + '</span>');
+          var source = $('<div class="source">' + inVar + '</div>');
+          var result = $('<div class="result">' + outVar[0] + '</div>');
 
           colorize(source, result);
 
@@ -42,11 +42,11 @@
 
           $("#outVar").append("<div class=\"ruleTitle\">" + counter + ") Rule: <span class='rule'>" + outVar[1][outVar[1].length - 1] + "</span></div>");
           $("#outVar").append(source);
-          $("#outVar").append("<br />");
           // this line is source with bg white color diff
-          $("#outVar").append(source.html().split("emph").join("emphW") + "<br />");
+          $("#outVar").append("<div class='myW'>" + source.html().split("emph").join("emphW") + "</div>");
 
-          if (result.html() !== minimum)
+          // if (result.html() !== minimum)
+          if (result.html().includes("emphG"))
             $("#outVar").append(result);
 
           inVar = outVar[0];
@@ -100,7 +100,7 @@
   <input placeholder="Enter your Regex!" id="inVar" value="(a+aλ)" type="text" />
   <button class="button" onclick="onClick()">Minimize</button>
   <p id="myError"></p>
-  <pre id="outVar"></pre>
+  <div id="outVar"></div>
 </body>
 
 </html>

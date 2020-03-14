@@ -66,3 +66,8 @@
   padding-right: 3px;
   border-radius: 5px;
 }
+
+body {
+  margin-left: 20px
+  margin-right: 20px
+}
