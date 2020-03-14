@@ -35,7 +35,7 @@ function minimize(tree, param) {
   var counter = 0;
 
   while (ruleDone !== null && (paramCopy.loopNo === null || counter < paramCopy.loopNo)) {
-    ruleDone = minimize_loop(treeCopy);
+    ruleDone = minimize_loop(treeCopy, minimize_list);
 
     if (ruleDone !== null && paramCopy.rulesDone !== null) {
       paramCopy.rulesDone.push(ruleDone);
@@ -47,28 +47,28 @@ function minimize(tree, param) {
   return treeCopy;
 }
 
-function minimize_loop(tree) {
-  var pattern = null;
+function minimize_loop(tree, minArr) {
+  var minItem = null;
   var result = null;
 
-  for (var i = 0; i < minimize_list.length; i++) {
-    pattern = minimize_list[i];
+  for (var i = 0; i < minArr.length; i++) {
+    minItem = minArr[i];
 
-    result = minimize_rec(tree, pattern['func']);
+    result = minimize_rec(tree, minItem['func']);
 
     if (result) {
-      return pattern.rule;
+      return minItem.rule;
     }
   }
 
   return null;
 }
 
-function minimize_rec(tree, ruleFunc) {
-  var ruleDone = ruleFunc(tree);
+function minimize_rec(tree, myFunc) {
+  var isSuccess = myFunc(tree);
 
-  if (ruleDone) {
-    return ruleDone;
+  if (isSuccess) {
+    return isSuccess;
   }
 
   var childArr = [];
@@ -81,10 +81,10 @@ function minimize_rec(tree, ruleFunc) {
   }
 
   for (var i = 0; i < childArr.length; i++) {
-    ruleDone = minimize_rec(childArr[i], ruleFunc);
+    isSuccess = minimize_rec(childArr[i], myFunc);
 
-    if (ruleDone) {
-      return ruleDone;
+    if (isSuccess) {
+      return isSuccess;
     }
   }
 
