@@ -20,13 +20,12 @@
       $("#outVar").html("");
 
       var inVar = $("#inVar").val();
-
       inVar = inVar.split("$").join("λ")
 
       try {
         var minimum = strMinimize(inVar);
-
         var counter = 1;
+
         while (!(minimum === inVar)) {
           var outVar = minimize_step(inVar);
 
@@ -40,7 +39,7 @@
             source.html(source.html().split(")<font class=\"emph\">)</font>").join("<font class=\"emph\">)</font>)"));
           }
 
-          $("#outVar").append("<div class=\"ruleTitle\">" + counter + ") Rule: <span class='rule'>" + outVar[1][outVar[1].length - 1] + "</span></div>");
+          $("#outVar").append("<div class=\"ruleTitle\">" + counter + ") Rule: <span class='rule'>" + outVar[1] + "</span></div>");
           $("#outVar").append(source);
           // this line is source with bg white color diff
           $("#outVar").append("<div class='myW'>" + source.html().split("emph").join("emphW") + "</div>");

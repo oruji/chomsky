@@ -11,11 +11,11 @@ var specs = {
 
 var minimize_list = [];
 
-function strMinimize(str, loopNo, rulesDone) {
-  var arr = strToArray(str);
+function strMinimize(regex, param) {
+  var arr = strToArray(regex);
   var tree = arrToTree(arr);
 
-  minimize(tree, loopNo, rulesDone);
+  minimize(tree, param);
 
   return tree.toString();
 }
@@ -111,7 +111,7 @@ function minimize_step(regex) {
     lastRuleNo = param.rulesDone.length;
   }
 
-  return [result, param.rulesDone];
+  return [result, arrLast(param.rulesDone)];
 }
 
 minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
