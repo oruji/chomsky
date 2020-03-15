@@ -7,10 +7,23 @@
   color: red;
 }
 
-[id^="outVar"] {
+#outVar {
   border-radius: 5px;
   background: aliceblue;
   border-style: groove;
+}
+
+#outVar2 {
+  display: inline-block;
+  min-width: 100px;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+#loading {
+  width: 24px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 #inVar {

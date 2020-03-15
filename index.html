@@ -16,11 +16,13 @@
   <script src="chomsky.js"></script>
   <script>
     var inVar = null;
-    var counter = 1;
+    var counter = null;
 
     function onClick() {
       $("#myError").text("");
       $("#outVar").html("");
+      $("#outVar2").replaceWith("<img id='loading' src='loading.gif' alt='loading' />");
+      counter = 1;
 
       inVar = $("#inVar").val();
       inVar = inVar.split("$").join("λ")
@@ -95,6 +97,7 @@
         counter++;
       } else {
         $("#outVar").append("<div class='minimum'>" + outVar[0] + "</div>");
+        $("#loading").replaceWith('<span class="minimum" id="outVar2">' + outVar[0] + '</span>');
       }
 
       inVar = outVar[0];
@@ -110,7 +113,10 @@
     string.
   </div>
   <input placeholder="Enter your Regex!" id="inVar" value="(a+aλ)" type="text" />
-  <button class="button" onclick="onClick()">Minimize</button>
+  <div>
+    <button class="button" onclick="onClick()">Minimize</button>
+    <span class="minimum" id="outVar2"></span>
+  </div>
   <p id="myError"></p>
   <div id="outVar"></div>
 </body>
