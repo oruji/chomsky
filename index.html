@@ -15,44 +15,25 @@
   <script src="tree.js"></script>
   <script src="chomsky.js"></script>
   <script>
+    var inVar = null;
+    var counter = 1;
+
     function onClick() {
       $("#myError").text("");
       $("#outVar").html("");
 
-      var inVar = $("#inVar").val();
+      inVar = $("#inVar").val();
       inVar = inVar.split("$").join("λ")
 
       try {
-        var minimum = strMinimize(inVar);
-        var counter = 1;
-
-        while (!(minimum === inVar)) {
-          var outVar = minimize_step(inVar);
-
-          var source = $('<div class="source">' + inVar + '</div>');
-          var result = $('<div class="result">' + outVar[0] + '</div>');
-
-          colorize(source, result);
-
-          // fix (b)) => b) wrong colorize
-          while (source.html().split(")<font class=\"emph\">)</font>").length > 1) {
-            source.html(source.html().split(")<font class=\"emph\">)</font>").join("<font class=\"emph\">)</font>)"));
+        var loop = function () {
+          if (simplifyStep()) {
+            setTimeout(loop, 0);
           }
+        };
 
-          $("#outVar").append("<div class=\"ruleTitle\">" + counter + ") Rule: <span class='rule'>" + outVar[1] + "</span></div>");
-          $("#outVar").append(source);
-          // this line is source with bg white color diff
-          $("#outVar").append("<div class='myW'>" + source.html().split("emph").join("emphW") + "</div>");
+        setTimeout(loop, 0);
 
-          // if (result.html() !== minimum)
-          if (result.html().includes("emphG"))
-            $("#outVar").append(result);
-
-          inVar = outVar[0];
-          counter++;
-        }
-
-        $("#outVar").append("<div class='minimum'>" + minimum + "</div>");
       } catch (err) {
         $("#myError").text(err.message);
       }
@@ -60,8 +41,6 @@
 
     // diff color
     function colorize(source, result) {
-      // var source = $("#first");
-      // var result = $("#second");
       var sourceText = source.text();
       var resultText = result.text();
 
@@ -87,6 +66,40 @@
       }
 
       div.html(out);
+    }
+
+    function simplifyStep() {
+      var outVar = minimize_step(inVar);
+
+      var isNotEnd = outVar[0] !== inVar;
+
+      if (isNotEnd) {
+        var source = $('<div class="source">' + inVar + '</div>');
+        var result = $('<div class="result">' + outVar[0] + '</div>');
+
+        colorize(source, result);
+
+        // fix (b)) => b) wrong colorize
+        while (source.html().split(")<font class=\"emph\">)</font>").length > 1) {
+          source.html(source.html().split(")<font class=\"emph\">)</font>").join("<font class=\"emph\">)</font>)"));
+        }
+
+        $("#outVar").append("<div class=\"ruleTitle\">" + counter + ") Rule: <span class='rule'>" + outVar[1] + "</span></div>");
+        $("#outVar").append(source);
+        // this line is source with bg white color diff
+        $("#outVar").append("<div class='myW'>" + source.html().split("emph").join("emphW") + "</div>");
+
+        if (result.html().includes("emphG"))
+          $("#outVar").append(result);
+
+        counter++;
+      } else {
+        $("#outVar").append("<div class='minimum'>" + outVar[0] + "</div>");
+      }
+
+      inVar = outVar[0];
+
+      return isNotEnd;
     }
   </script>
 </head>
