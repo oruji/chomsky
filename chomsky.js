@@ -421,36 +421,32 @@ function minimize_13(tree) {
           // A*
         } else {
           for (var j = i + 1; j < tree.mul.length - 1; j++) {
-            // A* _
-            if (!tree.mul[j].isStar()) {
+            // A* _ _*
+            if (!tree.mul[j].isStar() && tree.mul[j + 1].isStar()) {
+              // A*BB*
+              if (areEqual(tree.mul[j], tree.mul[j + 1].star)) {
+                found2 = j + 1;
+                break;
 
-              // A* _ _*
-              if (tree.mul[j + 1].isStar()) {
-                // A*BB*
-                if (areEqual(tree.mul[j], tree.mul[j + 1].star)) {
-                  found2 = j + 1;
-                  break;
+                // A*AB*
+              } else if (areEqual(tree.mul[i].star, tree.mul[j])) {
+                found2 = j + 1;
+                break;
 
-                  // A*AB*
-                } else if (areEqual(tree.mul[i].star, tree.mul[j])) {
-                  found2 = j + 1;
-                  break;
-
-                  // A*BC*
-                } else {
-                  break;
-                }
-
-                // A* B B
-              } else if (areEqual(tree.mul[j], tree.mul[j + 1])
-                || (areEqual(tree.mul[i].star, tree.mul[j]) && areEqual(tree.mul[j], tree.mul[j + 1]))) {
-                continue;
+                // A*BC*
+              } else {
+                break;
               }
+
+              // A* B B
+            } else if (areEqual(tree.mul[j], tree.mul[j + 1])
+              || (areEqual(tree.mul[i].star, tree.mul[j]) && areEqual(tree.mul[j], tree.mul[j + 1]))) {
+              continue;
             }
           }
         }
       }
-      if (found >= 0 && found2 >= 0) {
+      if (found >= 0 && found2 >= 0 && found !== found2) {
         if (isSub(tree.mul[found], tree.mul[found2])) {
           tree.mul.splice(found, 1);
 
