@@ -417,7 +417,6 @@ function minimize_13(tree) {
         // A* _*
         if (tree.mul[i + 1].isStar()) {
           found2 = i + 1;
-          break;
 
           // A*
         } else {
@@ -451,18 +450,18 @@ function minimize_13(tree) {
           }
         }
       }
-    }
-    if (found >= 0 && found2 >= 0) {
-      if (isSub(tree.mul[found], tree.mul[found2])) {
-        tree.mul.splice(found, 1);
+      if (found >= 0 && found2 >= 0) {
+        if (isSub(tree.mul[found], tree.mul[found2])) {
+          tree.mul.splice(found, 1);
 
-        return true;
-      }
+          return true;
+        }
 
-      if (isSub(tree.mul[found2], tree.mul[found])) {
-        tree.mul.splice(found2, 1);
+        if (isSub(tree.mul[found2], tree.mul[found])) {
+          tree.mul.splice(found2, 1);
 
-        return true;
+          return true;
+        }
       }
     }
   }
