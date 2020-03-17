@@ -46,21 +46,36 @@ function minimize(tree, param) {
 
     counter++;
   }
-
-  console.log("end of while");
 }
 
 function minimize_loop(tree, minArr) {
   var minItem = null;
   var result = null;
+  var level = 0;
 
   for (var i = 0; i < minArr.length; i++) {
+    console.log(minArr[i].rule + ": " + tree.toString5());
+
     minItem = minArr[i];
 
     result = minimize_rec(tree, minItem['func']);
 
     if (result) {
       return minItem.rule;
+    }
+
+    if (i == minArr.length - 1 && level === 0) {
+      minimize_list.pop();
+      minimize_list.push({ 'func': minimize_18, 'rule': "A(B+C) -> AB+AC Distribute", 'type': '' });
+      i = -1;
+      level = 1;
+    }
+
+    if (i == minArr.length - 1 && level === 1) {
+      minimize_list.pop();
+      minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C) Factor", 'type': '' });
+      i = -1;
+      level = 2;
     }
   }
 
@@ -115,8 +130,7 @@ function minimize_step(regex) {
 }
 
 minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
-minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
-minimize_list.push({ 'func': minimize_03, 'rule': "A(BC) -> ABC", 'type': '' });
+minimize_list.push({ 'func': minimize_03, 'rule': "A(BC) -> ABC Associate", 'type': '' });
 minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
 minimize_list.push({ 'func': minimize_08, 'rule': "λ* -> λ", 'type': '' });
@@ -127,7 +141,51 @@ minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type
 minimize_list.push({ 'func': minimize_14, 'rule': "(A+λ)* -> (A)*", 'type': '' });
 minimize_list.push({ 'func': minimize_15, 'rule': "A*(BA*)* -> (A+B)*", 'type': '' });
 minimize_list.push({ 'func': minimize_16, 'rule': "(A*B)*A* -> (A+B)*", 'type': '' });
-minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C)", 'type': '' });
+minimize_list.push({ 'func': minimize_02, 'rule': "λA -> A", 'type': '' });
+minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C) Factor", 'type': '' });
+
+console.log("list push global");
+
+function minimize_18(tree) {
+  // A(B+C) -> AB+AC
+
+  try {
+    if (tree.isMul() && tree.mul.length >= 2) {
+      var mulSing = -1;
+      var mulAdd = -1;
+
+      for (var i = 0; i < tree.mul.length; i++) {
+        if (tree.mul[i].isAdd()) {
+          mulAdd = i;
+          mulSing = (i === 0) ? i + 1 : i - 1;
+
+          if (mulSing < mulAdd) {
+            // A(B+C) -> A(AB+AC)
+            for (var j = 0; j < tree.mul[i].add.length; j++) {
+              tree.mul[i].add[j] = genMul([tree.mul[mulSing], tree.mul[i].add[j]]);
+            }
+
+          } else {
+            // (B+C)A -> (BA+CA)A
+            for (var j = 0; j < tree.mul[i].add.length; j++) {
+              tree.mul[i].add[j] = genMul([tree.mul[i].add[j], tree.mul[mulSing]]);
+            }
+          }
+
+          // A(AB+AC) - > (AB+AC)
+          tree.mul.splice(mulSing, 1);
+
+          return true;
+        }
+      }
+    }
+
+  } catch (err) {
+    console.log(err.message);
+  }
+
+  return false;
+}
 
 function minimize_17(tree) {
   // A(B+λ) -> AB+A

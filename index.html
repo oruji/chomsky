@@ -19,9 +19,9 @@
     var counter = null;
 
     function onClick() {
+      $("#outVar2").replaceWith("<img id='loading' src='loading.gif' alt='loading' />");
       $("#myError").text("");
       $("#outVar").html("");
-      $("#outVar2").replaceWith("<img id='loading' src='loading.gif' alt='loading' />");
       counter = 1;
 
       inVar = $("#inVar").val();
