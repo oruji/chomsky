@@ -74,7 +74,7 @@ function minimize_loop(tree, minArr) {
     if (i == minArr.length - 1 && level === 1) {
       minimize_list.pop();
       minimize_list.push({ 'func': minimize_18, 'rule': "A(B+C) -> AB+AC Distribute", 'type': '' });
-      i = -1;
+      // i = -1;
       level = 2;
     }
   }
