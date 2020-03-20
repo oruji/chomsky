@@ -141,9 +141,29 @@ class Tree {
   }
 
   clone() {
-    var obj = new Tree();
-    obj[this.key()] = this.val();
-    return obj;
+    return this._cloneRec(this);
+  }
+
+  _cloneRec(obj) {
+    if (obj.isLit()) {
+      var res = new Tree();
+      res.lit = obj.val();
+      return res;
+
+    } else if (obj.isStar()) {
+      var res = new Tree();
+      res.star = this._cloneRec(obj.star);
+      return res;
+
+    } else if (obj.isMul() || obj.isAdd()) {
+      var res = new Tree();
+      var myArr = [];
+      for (var i = 0; i < obj.val().length; i++) {
+        myArr.push(this._cloneRec(obj.val()[i]));
+      }
+      res[obj.key()] = myArr;
+      return res;
+    }
   }
 
   _toTree(hier) {
