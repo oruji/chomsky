@@ -19,7 +19,7 @@
     var counter = null;
 
     function onClick() {
-      $("#outVar2").replaceWith("<img id='loading' src='loading.gif' alt='loading' />");
+      $("#outVar2").replaceWith("<img id='loading' src='loading.gif' alt='loading' /><span id='myStatus'></span>");
       $("#myError").text("");
       $("#outVar").html("");
       counter = 1;
@@ -111,10 +111,14 @@
         if (result.html().includes("emphG"))
           $("#outVar").append(result);
 
+        $("#myStatus").text(counter + ": " + outVar[1]);
+        
         counter++;
+        
       } else {
         $("#outVar").append("<div class='minimum'>" + outVar[0] + "</div>");
         $("#loading").replaceWith('<span class="minimum" id="outVar2">' + outVar[0] + '</span>');
+        $("#myStatus").remove();
       }
 
       inVar = outVar[0];
