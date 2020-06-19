@@ -27,6 +27,23 @@
       inVar = $("#inVar").val();
       inVar = inVar.split("$").join("λ")
 
+
+      // replace $a to a
+      inVar = inVar.replace(/λ([^+*\)\)])/g, "$1");
+      
+      // replace a$ to a
+      inVar = inVar.replace(/([^+*\)\(])λ/g, "$1");
+      
+      // replace (a) to a
+      inVar = inVar.replace(/\((.)\)/g, "$1");
+      inVar = inVar.replace(/\((.)\)/g, "$1");
+      
+      // replace $a to a
+      inVar = inVar.replace(/λ([^+*\)\)])/g, "$1");
+      
+      // replace a$ to a
+      inVar = inVar.replace(/([^+*\)\(])λ/g, "$1");
+      
       try {
         var loop = function () {
           if (simplifyStep()) {
