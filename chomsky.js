@@ -146,10 +146,76 @@ minimize_list.push({ 'func': minimize_21, 'rule': "A+A* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_22, 'rule': "A*A* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_23, 'rule': "(AA+A)* -> (A)*", 'type': '' });
 minimize_list.push({ 'func': minimize_24, 'rule': "A*AA* -> AA*", 'type': '' });
+minimize_list.push({ 'func': minimize_25, 'rule': "(λ+(A+B)*A)B* -> (A+B)*", 'type': '' });
+minimize_list.push({ 'func': minimize_26, 'rule': "A*(λ+B(A+B)*) -> (A+B)*", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
 minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
 minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C) Factor", 'type': '' });
 //minimize_list.push({ 'func': minimize_18, 'rule': "A(B+C) -> AB+AC Distribute", 'type': '' });
+
+function minimize_26(tree) {
+  // A*(λ+B(A+B)*) -> (A+B)*
+  
+  if (tree.isMul() && tree.mul.length > 1) {
+    for (var i = 0; i < tree.mul.length-1; i++) {
+      if (tree.mul[i].isStar() && tree.mul[i + 1].isAdd() &&
+        tree.mul[i + 1].add.length === 2) {
+
+        var index_eps = index(tree.mul[i + 1].add, genLam());
+
+        if (index_eps >= 0) {
+          var internal = index_eps === 0 ? tree.mul[i + 1].add[1] : tree.mul[i + 1].add[0];
+
+          if (internal.isMul() && internal.mul.length === 2) {
+            if (internal.mul[1].isStar() && internal.mul[1].star.isAdd() &&
+                internal.mul[1].star.add.length === 2 && contains(internal.mul[1].star.add, tree.mul[i].star)) {
+              if (contains(internal.mul[1].star.add, internal.mul[0])) {
+                tree.mul[i + 1] = internal.mul[1];
+                tree.mul.splice(i, 1);
+                
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+function minimize_25(tree) {
+  // (λ+(A+B)*A)B* -> (A+B)*
+  
+  if (tree.isMul() && tree.mul.length > 1) {
+    for (var i = 1; i < tree.mul.length; i++) {
+      if (tree.mul[i].isStar() && tree.mul[i - 1].isAdd() &&
+        tree.mul[i - 1].add.length === 2) {
+
+        var index_eps = index(tree.mul[i - 1].add, genLam());
+
+        if (index_eps >= 0) {
+          var internal = index_eps === 0 ? tree.mul[i - 1].add[1] : tree.mul[i - 1].add[0];
+
+          if (internal.isMul() && internal.mul.length === 2) {
+            if (internal.mul[0].isStar() && internal.mul[0].star.isAdd() &&
+                internal.mul[0].star.add.length === 2 && contains(internal.mul[0].star.add, tree.mul[i].star)) {
+              if (contains(internal.mul[0].star.add, internal.mul[1])) {
+                tree.mul[i - 1] = internal.mul[0];
+                tree.mul.splice(i, 1);
+                
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return false;
+}
 
 function minimize_24(tree) {
   // A*AA* -> AA*

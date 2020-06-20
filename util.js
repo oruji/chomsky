@@ -78,6 +78,32 @@ function areEqual(obj1, obj2) {
     return true;
 }
 
+function contains(arr, obj, startIndex) {
+  startIndex = startIndex ? startIndex : 0;
+
+  for (var i=startIndex; i<arr.length; i++) {
+    if (areEqual(arr[i], obj)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function index(arr, obj, startIndex) {
+  var i = startIndex || 0;
+  
+  while (i < arr.length) {
+    if (areEqual(arr[i], obj)) {
+      return i;
+    }
+    
+    i++;
+  }
+  
+  return -1;
+}
+
 function arrUnique(arr) {
     var arrUnq = arr.concat();
     for (var i = 0; i < arrUnq.length; ++i) {
