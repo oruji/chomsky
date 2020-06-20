@@ -146,8 +146,8 @@ minimize_list.push({ 'func': minimize_21, 'rule': "A+A* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_22, 'rule': "A*A* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_23, 'rule': "(AA+A)* -> (A)*", 'type': '' });
 minimize_list.push({ 'func': minimize_24, 'rule': "A*AA* -> AA*", 'type': '' });
-//minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
-//minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
+minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
+minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
 minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C) Factor", 'type': '' });
 //minimize_list.push({ 'func': minimize_18, 'rule': "A(B+C) -> AB+AC Distribute", 'type': '' });
 

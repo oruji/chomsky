@@ -25,53 +25,19 @@
       counter = 1;
 
       inVar = $("#inVar").val();
+      
+      // replace $ with λ
       inVar = inVar.split("$").join("λ")
 
+      // remove spaces
       inVar = inVar.replace(/\s/g,'')
-
-      // remove ()
-      //inVar = regexMinimzer(/\(\)/g, "", "remove ()", inVar);
-
-      // replace (λ)* to λ
-      inVar = regexMinimzer(/\((λ)\)\*/g, "$1", "replace (λ)* to λ", inVar);
-
-      // replace (A) to A
-      inVar = regexMinimzer(/\((.)\)/g, "$1", "replace (A) to A", inVar);
-      // replace (A) to A
-      inVar = regexMinimzer(/\((.)\)/g, "$1", "replace (A) to A", inVar);
-
-      // replace λA to A
-      inVar = regexMinimzer(/λ([^+*\)\)])/g, "$1", "replace λA to A", inVar);
-      
-      // replace Aλ to A
-      inVar = regexMinimzer(/([^+*\(\)])λ/g, "$1", "replace Aλ to A", inVar);
-           
-      // replace λ+AA* to A*
-      inVar = regexMinimzer(/λ\+([^+*\)])\1\*/g, "$1*", "replace λ+AA* to A*", inVar);
-      // replace λ+A*A to A*
-      inVar = regexMinimzer(/λ\+([^+*\)])\*\1/g, "$1*", "replace λ+A*A to A*", inVar);
-      
-      // replace AA*+λ to A*
-      inVar = regexMinimzer(/([^+*\)])\1\*\+λ/g, "$1*", "replace AA*+λ to A*", inVar);
-      // replace A*A+λ to A*
-      inVar = regexMinimzer(/([^+*\)])\*\1\+λ/g, "$1*", "replace A*A+λ to A*", inVar);
-
-      // replace (A*)* to (A*)
-      inVar = regexMinimzer(/\((.\*)\)\*/g, "($1)", "replace (A*)* to (A*)", inVar);
-      
-      // replace (A*) to A*
-      inVar = regexMinimzer(/\((.\*)\)/g, "$1", "replace (A*) to A*", inVar);
-
-      // replace A*A* to A*
-      inVar = regexMinimzer(/([^+*\)])\*\1\*/g, "$1", "replace A*A* to A*", inVar);
-      
+     
       try {
         var loop = function () {
           if (simplifyStep()) {
             setTimeout(loop, 0);
           }
         };
-
         setTimeout(loop, 0);
 
       } catch (err) {
@@ -79,37 +45,12 @@
       }
     }
 
-    // diff color
-    function colorize(source, result) {
-      var sourceText = source.text();
-      var resultText = result.text();
-
-      var diff = JsDiff.diffChars(sourceText, resultText);
-
-      colorDiv(source, diff, "removed", "emph");
-      colorDiv(result, diff, "added", "emphG");
-    }
-
-    function colorDiv(div, parts, type, cssClass) {
-      var out = "";
-      var shouldBeTrueOrUndefined = type;
-      var mustBeUndefined = type === "added" ? "removed" : "added";
-
-      for (var i = 0; i < parts.length; i++) {
-        if (parts[i][mustBeUndefined] === undefined) {
-          if (parts[i][shouldBeTrueOrUndefined] === undefined) {
-            out += parts[i].value;
-          } else {
-            out += '<font class="' + cssClass + '">' + parts[i].value + '</font>';
-          }
-        }
-      }
-
-      div.html(out);
-    }
-
     function simplifyStep() {
-      var outVar = minimize_step(inVar);
+      var outVar = minimize_step_reg(inVar);
+      
+      if (inVar === outVar[0]) {
+        outVar = minimize_step(inVar);
+      }
 
       var isNotEnd = outVar[0] !== inVar;
 
@@ -147,29 +88,61 @@
 
       return isNotEnd;
     }
+
+    function minimize_step_reg(inVar) {
+      var invar2;
+      
+      var reg_list = [];
+      reg_list.push({ 'rule': "REG (λ)* to λ", 'reg': /\((λ)\)\*/g, 'rep': "$1" });
+      reg_list.push({ 'rule': "REG (A) to A", 'reg': /\((.)\)/g, 'rep': "$1" });
+      reg_list.push({ 'rule': "REG λA to A", 'reg': /λ([^+*\)\)])/g, 'rep': "$1" });
+      reg_list.push({ 'rule': "REG Aλ to A", 'reg': /([^+*\(\)])λ/g, 'rep': "$1" });
+      reg_list.push({ 'rule': "REG λ+AA* to A*", 'reg': /λ\+([^+*\)])\1\*/g, 'rep': "$1*" });
+      reg_list.push({ 'rule': "REG λ+A*A to A*", 'reg': /λ\+([^+*\)])\*\1/g, 'rep': "$1*" });
+      reg_list.push({ 'rule': "REG AA*+λ to A*", 'reg': /([^+*\)])\1\*\+λ/g, 'rep': "$1*" });
+      reg_list.push({ 'rule': "REG A*A+λ to A*", 'reg': /([^+*\)])\*\1\+λ/g, 'rep': "$1*" });
+      reg_list.push({ 'rule': "REG (A*)* to (A*)", 'reg': /\((.\*)\)\*/g, 'rep': "($1)" });
+      reg_list.push({ 'rule': "REG (A*) to A*", 'reg': /\((.\*)\)/g, 'rep': "$1" });
+      reg_list.push({ 'rule': "REG A*A* to A*", 'reg': /([^+*\)])\*\1\*/g, 'rep': "$1" });
     
-    function regexMinimzer(reg, rep, rule, inVar) {
-      inVar2 = inVar.replace(reg, rep);
-      
-      if (inVar !== inVar2) {
-        var source = $('<div class="source">' + inVar + '</div>');
-        var result = $('<div class="result">' + inVar2 + '</div>');
-
-        colorize(source, result);
-
-        $("#outVar").append("<div class=\"ruleTitle\">" + counter + ") Rule: <span class='rule'>" + rule + "</span></div>");
-        $("#outVar").append(source);
-        // this line is source with bg white color diff
-        $("#outVar").append("<div class='myW'>" + source.html().split("emph").join("emphW") + "</div>");
-      
-        $("#myStatus").text(counter + ": " + rule);
-        $("#outVar2").text(inVar2);
-        counter++;
+      for (var i = 0; i < reg_list.length; i++) {
+        inVar2 = inVar.replace(reg_list[i].reg, reg_list[i].rep);
         
-        inVar = inVar2;
+        if (inVar !== inVar2) {
+          return [inVar2, reg_list[i].rule];
+        }
       }
       
-      return inVar;
+      return [inVar2, ""];
+    }
+    
+    // diff color
+    function colorize(source, result) {
+      var sourceText = source.text();
+      var resultText = result.text();
+
+      var diff = JsDiff.diffChars(sourceText, resultText);
+
+      colorDiv(source, diff, "removed", "emph");
+      colorDiv(result, diff, "added", "emphG");
+    }
+
+    function colorDiv(div, parts, type, cssClass) {
+      var out = "";
+      var shouldBeTrueOrUndefined = type;
+      var mustBeUndefined = type === "added" ? "removed" : "added";
+
+      for (var i = 0; i < parts.length; i++) {
+        if (parts[i][mustBeUndefined] === undefined) {
+          if (parts[i][shouldBeTrueOrUndefined] === undefined) {
+            out += parts[i].value;
+          } else {
+            out += '<font class="' + cssClass + '">' + parts[i].value + '</font>';
+          }
+        }
+      }
+
+      div.html(out);
     }
   </script>
 </head>
