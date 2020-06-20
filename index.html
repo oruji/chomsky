@@ -19,7 +19,7 @@
     var counter = null;
 
     function onClick() {
-      $("#outVar2").replaceWith("<img id='loading' src='loading.gif' alt='loading' /><span id='myStatus'></span>");
+      $("#outVar2").before("<div id='myStatusDiv'><img id='loading' src='loading.gif' alt='loading' /><span id='myStatus'></span></div>");
       $("#myError").text("");
       $("#outVar").html("");
       counter = 1;
@@ -27,22 +27,43 @@
       inVar = $("#inVar").val();
       inVar = inVar.split("$").join("λ")
 
+      inVar = inVar.replace(/\s/g,'')
 
-      // replace $a to a
-      inVar = inVar.replace(/λ([^+*\)\)])/g, "$1");
+      // remove ()
+      //inVar = regexMinimzer(/\(\)/g, "", "remove ()", inVar);
+
+      // replace (λ)* to λ
+      inVar = regexMinimzer(/\((λ)\)\*/g, "$1", "replace (λ)* to λ", inVar);
+
+      // replace (A) to A
+      inVar = regexMinimzer(/\((.)\)/g, "$1", "replace (A) to A", inVar);
+      // replace (A) to A
+      inVar = regexMinimzer(/\((.)\)/g, "$1", "replace (A) to A", inVar);
+
+      // replace λA to A
+      inVar = regexMinimzer(/λ([^+*\)\)])/g, "$1", "replace λA to A", inVar);
       
-      // replace a$ to a
-      inVar = inVar.replace(/([^+*\)\(])λ/g, "$1");
+      // replace Aλ to A
+      inVar = regexMinimzer(/([^+*\(\)])λ/g, "$1", "replace Aλ to A", inVar);
+           
+      // replace λ+AA* to A*
+      inVar = regexMinimzer(/λ\+([^+*\)])\1\*/g, "$1*", "replace λ+AA* to A*", inVar);
+      // replace λ+A*A to A*
+      inVar = regexMinimzer(/λ\+([^+*\)])\*\1/g, "$1*", "replace λ+A*A to A*", inVar);
       
-      // replace (a) to a
-      inVar = inVar.replace(/\((.)\)/g, "$1");
-      inVar = inVar.replace(/\((.)\)/g, "$1");
+      // replace AA*+λ to A*
+      inVar = regexMinimzer(/([^+*\)])\1\*\+λ/g, "$1*", "replace AA*+λ to A*", inVar);
+      // replace A*A+λ to A*
+      inVar = regexMinimzer(/([^+*\)])\*\1\+λ/g, "$1*", "replace A*A+λ to A*", inVar);
+
+      // replace (A*)* to (A*)
+      inVar = regexMinimzer(/\((.\*)\)\*/g, "($1)", "replace (A*)* to (A*)", inVar);
       
-      // replace $a to a
-      inVar = inVar.replace(/λ([^+*\)\)])/g, "$1");
-      
-      // replace a$ to a
-      inVar = inVar.replace(/([^+*\)\(])λ/g, "$1");
+      // replace (A*) to A*
+      inVar = regexMinimzer(/\((.\*)\)/g, "$1", "replace (A*) to A*", inVar);
+
+      // replace A*A* to A*
+      inVar = regexMinimzer(/([^+*\)])\*\1\*/g, "$1", "replace A*A* to A*", inVar);
       
       try {
         var loop = function () {
@@ -112,18 +133,43 @@
           $("#outVar").append(result);
 
         $("#myStatus").text(counter + ": " + outVar[1]);
+        $("#outVar2").text(outVar[0]);
         
         counter++;
         
       } else {
         $("#outVar").append("<div class='minimum'>" + outVar[0] + "</div>");
-        $("#loading").replaceWith('<span class="minimum" id="outVar2">' + outVar[0] + '</span>');
-        $("#myStatus").remove();
+        $("#outVar2").text(outVar[0]);
+        $("#myStatusDiv").remove();
       }
 
       inVar = outVar[0];
 
       return isNotEnd;
+    }
+    
+    function regexMinimzer(reg, rep, rule, inVar) {
+      inVar2 = inVar.replace(reg, rep);
+      
+      if (inVar !== inVar2) {
+        var source = $('<div class="source">' + inVar + '</div>');
+        var result = $('<div class="result">' + inVar2 + '</div>');
+
+        colorize(source, result);
+
+        $("#outVar").append("<div class=\"ruleTitle\">" + counter + ") Rule: <span class='rule'>" + rule + "</span></div>");
+        $("#outVar").append(source);
+        // this line is source with bg white color diff
+        $("#outVar").append("<div class='myW'>" + source.html().split("emph").join("emphW") + "</div>");
+      
+        $("#myStatus").text(counter + ": " + rule);
+        $("#outVar2").text(inVar2);
+        counter++;
+        
+        inVar = inVar2;
+      }
+      
+      return inVar;
     }
   </script>
 </head>
