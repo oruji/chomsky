@@ -148,10 +148,56 @@ minimize_list.push({ 'func': minimize_23, 'rule': "(AA+A)* -> (A)*", 'type': '' 
 minimize_list.push({ 'func': minimize_24, 'rule': "A*AA* -> AA*", 'type': '' });
 minimize_list.push({ 'func': minimize_25, 'rule': "(λ+(A+B)*A)B* -> (A+B)*", 'type': '' });
 minimize_list.push({ 'func': minimize_26, 'rule': "A*(λ+B(A+B)*) -> (A+B)*", 'type': '' });
+minimize_list.push({ 'func': minimize_27, 'rule': "A*(A+B)* -> (A+B)*", 'type': '' });
+minimize_list.push({ 'func': minimize_28, 'rule': "(A+B)*A* -> (A+B)*", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
 minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
 minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C) Factor", 'type': '' });
 //minimize_list.push({ 'func': minimize_18, 'rule': "A(B+C) -> AB+AC Distribute", 'type': '' });
+
+function minimize_28(tree) {
+  // (A+B)*A* -> (A+B)*
+  
+  if (tree.isMul() && tree.mul.length >= 2) {
+    for (var i = 0; i < tree.mul.length - 1; i++) {
+      if (tree.mul[i].isStar() && tree.mul[i + 1].isStar()) {
+        if (tree.mul[i].star.isAdd()) {
+          for (var j = 0; j < tree.mul[i].star.add.length; j++) {
+            if (areEqual(tree.mul[i + 1].star, tree.mul[i].star.add[j])) {
+              tree.mul.splice(i + 1, 1);
+              
+              return true;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  return false;
+}
+
+function minimize_27(tree) {
+  // A*(A+B)* -> (A+B)*
+  
+  if (tree.isMul() && tree.mul.length >= 2) {
+    for (var i = 0; i < tree.mul.length - 1; i++) {
+      if (tree.mul[i].isStar() && tree.mul[i + 1].isStar()) {
+        if (tree.mul[i + 1].star.isAdd()) {
+          for (var j = 0; j < tree.mul[i + 1].star.add.length; j++) {
+            if (areEqual(tree.mul[i].star, tree.mul[i + 1].star.add[j])) {
+              tree.mul.splice(i, 1);
+              
+              return true;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  return false;
+}
 
 function minimize_26(tree) {
   // A*(λ+B(A+B)*) -> (A+B)*
