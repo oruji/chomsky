@@ -154,6 +154,7 @@ minimize_list.push({ 'func': minimize_31, 'rule': "A+AB -> A(λ+B)", 'type': '' 
 minimize_list.push({ 'func': minimize_32, 'rule': "AB+A -> A(B+λ)", 'type': '' });
 minimize_list.push({ 'func': minimize_33, 'rule': "AB+B -> (A+λ)B", 'type': '' });
 minimize_list.push({ 'func': minimize_34, 'rule': "B+AB -> (λ+A)B", 'type': '' });
+minimize_list.push({ 'func': minimize_35, 'rule': "(λ+A)A*(λ+A) -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_36, 'rule': "(λ+A+B)(A+B)*(λ+A+B) -> (A+B)*", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
 minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
@@ -198,7 +199,7 @@ function minimize_35(tree) {
 
   if (tree.isMul() && tree.mul.length >= 3) {
     for (var i = 0; i < tree.mul.length - 2; i++) {
-      if (tree.mul[i].isAdd() && tree.mul[i + 1].isStar() && tree.mul[i].isAdd()) {
+      if (tree.mul[i].isAdd() && tree.mul[i + 1].isStar() && tree.mul[i + 2].isAdd()) {
         if (tree.mul[i].add.length == 2 && tree.mul[i + 2].add.length == 2) {
           if (contains(tree.mul[i].add, genLam())
               && contains(tree.mul[i].add, tree.mul[i + 1].star)) {
