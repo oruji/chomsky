@@ -128,7 +128,7 @@ function minimize_step(regex) {
 }
 
 minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
-minimize_list.push({ 'func': minimize_03, 'rule': "A(BC) -> ABC Associate", 'type': '' });
+minimize_list.push({ 'func': minimize_03, 'rule': "A(BC) -> ABC Associative", 'type': '' });
 minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_08, 'rule': "λ* -> λ", 'type': '' });
 minimize_list.push({ 'func': minimize_09, 'rule': "(A*)* -> A*", 'type': '' });
@@ -148,21 +148,64 @@ minimize_list.push({ 'func': minimize_25, 'rule': "(λ+(A+B)*A)B* -> (A+B)*", 't
 minimize_list.push({ 'func': minimize_26, 'rule': "A*(λ+B(A+B)*) -> (A+B)*", 'type': '' });
 minimize_list.push({ 'func': minimize_27, 'rule': "A*(A+B)* -> (A+B)*", 'type': '' });
 minimize_list.push({ 'func': minimize_28, 'rule': "(A+B)*A* -> (A+B)*", 'type': '' });
+minimize_list.push({ 'func': minimize_35, 'rule': "(λ+A)A*(λ+A) -> A*", 'type': '' });
+minimize_list.push({ 'func': minimize_36, 'rule': "(λ+A+B)(A+B)*(λ+A+B) -> (A+B)*", 'type': '' });
 minimize_list.push({ 'func': minimize_29, 'rule': "AB+AC -> A(B+C)", 'type': '' });
 minimize_list.push({ 'func': minimize_30, 'rule': "AB+CB -> (A+C)B", 'type': '' });
 minimize_list.push({ 'func': minimize_31, 'rule': "A+AB -> A(λ+B)", 'type': '' });
 minimize_list.push({ 'func': minimize_32, 'rule': "AB+A -> A(B+λ)", 'type': '' });
 minimize_list.push({ 'func': minimize_33, 'rule': "AB+B -> (A+λ)B", 'type': '' });
 minimize_list.push({ 'func': minimize_34, 'rule': "B+AB -> (λ+A)B", 'type': '' });
-minimize_list.push({ 'func': minimize_35, 'rule': "(λ+A)A*(λ+A) -> A*", 'type': '' });
-minimize_list.push({ 'func': minimize_36, 'rule': "(λ+A+B)(A+B)*(λ+A+B) -> (A+B)*", 'type': '' });
+minimize_list.push({ 'func': minimize_37, 'rule': "λ+AA* -> A* IF A*=λ+AA*", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
 minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
 // minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C) Factor", 'type': '' });
 // minimize_list.push({ 'func': minimize_18, 'rule': "A(B+C) -> AB+AC Distribute", 'type': '' });
 
+function minimize_37(tree) {
+  // λ+AA* -> A* IF A*=λ+AA*
+  
+  if (tree.isAdd() && tree.add.length >= 2 && contains(tree.add, genLam())) {
+    lamIdx = -1;
+    mulIdx = -1;
+    starIdx = -1;
+    var starTree;
+    
+    for (var i = 0; i < tree.add.length; i++) {
+      if (tree.add[i].isLam()) {
+        lamIdx = i;
+
+      } else if (tree.add[i].isMul()) {
+        mulIdx = i;
+        
+        for (var j = 0; j < tree.add[i].mul.length; j++) {
+          if (tree.add[i].mul[j].isStar()) {
+            starIdx = j;
+            starTree = tree.add[i].mul[j];
+            
+            break;
+          }
+        }
+      }
+    }
+    
+    if (lamIdx > -1 && mulIdx > -1 && starIdx > -1) {
+      if (isEqu(tree, tree.add[mulIdx].mul[starIdx])) {
+        tree.add.splice(0, 1)
+        tree.add.splice(0, 1, starTree)
+        
+        return true;
+      }
+    }
+  }
+
+
+  return false;
+}
+
+
 function minimize_36(tree) {
-// (λ+A+B)(A+B)*(λ+A+B) -> (A+B)*
+  // (λ+A+B)(A+B)*(λ+A+B) -> (A+B)*
 
   if (tree.isMul() && tree.mul.length >= 3) {
     for (var i = 0; i < tree.mul.length - 2; i++) {
@@ -195,7 +238,7 @@ function minimize_36(tree) {
 }
 
 function minimize_35(tree) {
-// (λ+A)A*(λ+A) -> A*
+  // (λ+A)A*(λ+A) -> A*
 
   if (tree.isMul() && tree.mul.length >= 3) {
     for (var i = 0; i < tree.mul.length - 2; i++) {
@@ -1050,6 +1093,11 @@ function minimize_08(tree) {
 
 function minimize_07(tree) {
   // AB+AC -> A(B+C) Factor
+  // AB+CB -> (A+C)B
+  // A+AB -> A(λ+B)
+  // AB+A -> A(B+λ)
+  // AB+B -> (A+λ)B
+  // B+AB -> (λ+A)B
 
   if (tree.isAdd() && tree.add.length >= 2) {
     var mulIdx = -1;
@@ -1189,7 +1237,7 @@ function minimize_05(tree) {
 function minimize_04(tree) {
   // λ+AA* -> A*
 
-  // "λ" & "AA*"
+  // "λ" + "AA*"
   if (tree.isAdd() && tree.add.length >= 2) {
     var lamIdx = -1;
     var starIdx = -1;
@@ -1233,7 +1281,7 @@ function minimize_04(tree) {
 }
 
 function minimize_03(tree) {
-  // A(BC) -> ABC, Associative property
+  // A(BC) -> ABC, Associative
 
   if ((tree.isAdd() || tree.isMul()) && tree.val().length >= 2) {
     var found = -1, i;
@@ -1502,4 +1550,23 @@ function isSub(tree1, tree2) {
   fsm2 = noam.fsm.convertNfaToDfa(fsm2);
 
   return noam.fsm.isSubset(fsm2, fsm1);
+}
+
+function isEqu(tree1, tree2) {
+  var fsm1 = noam.re.string.toAutomaton(tree1.toString().split(specs.LAMBDA).join("$"));
+  var fsm2 = noam.re.string.toAutomaton(tree2.toString().split(specs.LAMBDA).join("$"));
+
+  // merge alphabet, both alphabet must be the same
+  var arr3 = arrMerge(fsm1.alphabet, fsm2.alphabet);
+
+  fsm1.alphabet = arr3;
+  fsm2.alphabet = arr3;
+
+  var fsm1 = noam.fsm.convertEnfaToNfa(fsm1);
+  var fsm1 = noam.fsm.convertNfaToDfa(fsm1);
+
+  var fsm2 = noam.fsm.convertEnfaToNfa(fsm2);
+  var fsm2 = noam.fsm.convertNfaToDfa(fsm2);
+
+  return noam.fsm.areEquivalentFSMs(fsm1, fsm2);
 }
