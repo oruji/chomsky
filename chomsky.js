@@ -128,7 +128,10 @@ function minimize_step(regex) {
 }
 
 minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
-minimize_list.push({ 'func': minimize_03, 'rule': "A(BC) -> ABC Associative", 'type': '' });
+minimize_list.push({ 'func': minimize_38, 'rule': "A(BC) -> ABC", 'type': '' });
+minimize_list.push({ 'func': minimize_39, 'rule': "(AB)C -> ABC", 'type': '' });
+minimize_list.push({ 'func': minimize_40, 'rule': "A+(B+C) -> A+B+C", 'type': '' });
+minimize_list.push({ 'func': minimize_41, 'rule': "(A+B)+C -> A+B+C", 'type': '' });
 minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_08, 'rule': "λ* -> λ", 'type': '' });
 minimize_list.push({ 'func': minimize_09, 'rule': "(A*)* -> A*", 'type': '' });
@@ -159,8 +162,91 @@ minimize_list.push({ 'func': minimize_34, 'rule': "B+AB -> (λ+A)B", 'type': '' 
 minimize_list.push({ 'func': minimize_37, 'rule': "λ+AA* -> A* IF A*=λ+AA*", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
 minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
-// minimize_list.push({ 'func': minimize_07, 'rule': "AB+AC -> A(B+C) Factor", 'type': '' });
 // minimize_list.push({ 'func': minimize_18, 'rule': "A(B+C) -> AB+AC Distribute", 'type': '' });
+
+function minimize_41(tree) {
+  // (A+B)+C -> A+B+C
+  
+  if (tree.isAdd() && tree.add.length >= 2) {
+    for (var i = 0; i < tree.add.length - 1; i++) {
+      if (tree.add[i].isAdd()) {
+        var node = tree.add[i].add;
+        tree.add.splice(i, 1);
+        
+        for (var j = node.length - 1; j >= 0; j--) {
+          tree.add.splice(i, 0, node[j]);
+        }
+        
+        return true;
+      }
+    }
+  }
+  
+  return false;
+}
+
+function minimize_40(tree) {
+  // A+(B+C) -> A+B+C
+  
+  if (tree.isAdd() && tree.add.length >= 2) {
+    for (var i = 0; i < tree.add.length - 1; i++) {
+      if (tree.add[i + 1].isAdd()) {
+        var node = tree.add[i + 1].add;
+        tree.add.splice(i + 1, 1);
+        
+        for (var j = node.length - 1; j >= 0; j--) {
+          tree.add.splice(i + 1, 0, node[j]);
+        }
+        
+        return true;
+      }
+    }
+  }
+  
+  return false;
+}
+
+function minimize_39(tree) {
+  // (AB)C -> ABC
+  
+  if (tree.isMul() && tree.mul.length >= 2) {
+    for (var i = 0; i < tree.mul.length - 1; i++) {
+      if (tree.mul[i].isMul()) {
+        var node = tree.mul[i].mul;
+        tree.mul.splice(i, 1);
+        
+        for (var j = node.length - 1; j >= 0; j--) {
+          tree.mul.splice(i, 0, node[j]);
+        }
+        
+        return true;
+      }
+    }
+  }
+  
+  return false;
+}
+
+function minimize_38(tree) {
+  // A(BC) -> ABC
+  
+  if (tree.isMul() && tree.mul.length >= 2) {
+    for (var i = 0; i < tree.mul.length - 1; i++) {
+      if (tree.mul[i + 1].isMul()) {
+        var node = tree.mul[i + 1].mul;
+        tree.mul.splice(i + 1, 1);
+        
+        for (var j = node.length - 1; j >= 0; j--) {
+          tree.mul.splice(i + 1, 0, node[j]);
+        }
+        
+        return true;
+      }
+    }
+  }
+  
+  return false;
+}
 
 function minimize_37(tree) {
   // λ+AA* -> A* IF A*=λ+AA*
@@ -1237,7 +1323,6 @@ function minimize_05(tree) {
 function minimize_04(tree) {
   // λ+AA* -> A*
 
-  // "λ" + "AA*"
   if (tree.isAdd() && tree.add.length >= 2) {
     var lamIdx = -1;
     var starIdx = -1;
@@ -1282,6 +1367,9 @@ function minimize_04(tree) {
 
 function minimize_03(tree) {
   // A(BC) -> ABC, Associative
+  // (AB)C -> ABC
+  // A+(B+C) -> A+B+C
+  // (A+B)+C -> A+B+C
 
   if ((tree.isAdd() || tree.isMul()) && tree.val().length >= 2) {
     var found = -1, i;
