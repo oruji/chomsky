@@ -129,3 +129,56 @@ function arrHasObj(arr, obj) {
 
     return -1;
 }
+
+function hasStar(treeList) {
+  var reList = [];
+  
+  for (var i = 0; i < treeList.length; i++) {
+    if (treeList[i].isStar()) {
+      reList.push(i);
+    }
+  }
+  
+  return reList;
+}
+
+function hasMul(treeList) {
+  var reList = [];
+  
+  for (var i = 0; i < treeList.length; i++) {
+    if (treeList[i].isMul()) {
+      reList.push(i);
+    }
+  }
+  
+  return reList;
+}
+
+function areSame(treeList) {
+  var first = treeList[0];
+  for (var i = 1; i < treeList.length; i++) {
+    if (!areEqual(first, treeList[i])) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+function msToTime(s) {
+
+  // Pad to 2 or 3 digits, default is 2
+  function pad(n, z) {
+    z = z || 2;
+    return ('00' + n).slice(-z);
+  }
+
+  var ms = s % 1000;
+  s = (s - ms) / 1000;
+  var secs = s % 60;
+  s = (s - secs) / 60;
+  var mins = s % 60;
+  var hrs = (s - mins) / 60;
+
+  return pad(hrs) + ':' + pad(mins) + ':' + pad(secs) + '.' + pad(ms, 3);
+}

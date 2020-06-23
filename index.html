@@ -17,14 +17,19 @@
   <script>
     var inVar = null;
     var counter = null;
+    var myTime = null;
 
     function onClick() {
       $("#outVar2").before("<div id='myStatusDiv'><img id='loading' src='loading.gif' alt='loading' /><span id='myStatus'></span></div>");
       $("#myError").text("");
       $("#outVar").html("");
+      
       counter = 1;
+      myTime = new Date().getTime();
 
       inVar = $("#inVar").val();
+      
+      $("#inLength").text(inVar.length);
       
       // replace $ with λ
       inVar = inVar.split("$").join("λ")
@@ -74,15 +79,17 @@
           $("#outVar").append(result);
 
         $("#myStatus").text(counter + ": " + outVar[1]);
-        $("#outVar2").text(outVar[0]);
         
         counter++;
         
       } else {
         $("#outVar").append("<div class='minimum'>" + outVar[0] + "</div>");
-        $("#outVar2").text(outVar[0]);
         $("#myStatusDiv").remove();
       }
+
+      $("#outVar2").text(outVar[0]);
+      $("#myLength").text(outVar[0].length);
+      $("#myBench").text(msToTime(new Date().getTime() - myTime));
 
       inVar = outVar[0];
 
@@ -155,6 +162,9 @@
   <input placeholder="Enter your Regex!" id="inVar" value="(a+aλ)" type="text" />
   <div>
     <button class="button" onclick="onClick()">Minimize</button>
+    Length: <span id="inLength"></span> => <span id="myLength"></span>, Time: <span id="myBench"></span>
+  </div>
+  <div>
     <span class="minimum" id="outVar2"></span>
   </div>
   <p id="myError"></p>

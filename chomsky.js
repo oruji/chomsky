@@ -132,6 +132,7 @@ minimize_list.push({ 'func': minimize_38, 'rule': "A(BC) -> ABC", 'type': '' });
 minimize_list.push({ 'func': minimize_39, 'rule': "(AB)C -> ABC", 'type': '' });
 minimize_list.push({ 'func': minimize_40, 'rule': "A+(B+C) -> A+B+C", 'type': '' });
 minimize_list.push({ 'func': minimize_41, 'rule': "(A+B)+C -> A+B+C", 'type': '' });
+minimize_list.push({ 'func': minimize_42, 'rule': "A...+A* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_08, 'rule': "λ* -> λ", 'type': '' });
 minimize_list.push({ 'func': minimize_09, 'rule': "(A*)* -> A*", 'type': '' });
@@ -163,6 +164,34 @@ minimize_list.push({ 'func': minimize_37, 'rule': "λ+AA* -> A* IF A*=λ+AA*", '
 minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
 minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
 // minimize_list.push({ 'func': minimize_18, 'rule': "A(B+C) -> AB+AC Distribute", 'type': '' });
+
+function minimize_42(tree) {
+  // A...+A* -> A*
+  
+  if (tree.isAdd() && tree.add.length >= 2) {
+    var starArr = hasStar(tree.add);
+    
+    if (starArr.length > 0) {
+      var mulArr = hasMul(tree.add);
+      
+      if (mulArr.length > 0) {
+        for (var i = 0; i < starArr.length; i++) {
+          for (var j = 0; j < mulArr.length; j++) {
+            if (areSame(tree.add[mulArr[j]].mul)) {
+              if (areEqual(tree.add[mulArr[j]].mul[0], tree.add[starArr[i]].star)) {
+                tree.add.splice(mulArr[j], 1);
+                
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  return false;
+}
 
 function minimize_41(tree) {
   // (A+B)+C -> A+B+C
@@ -1419,7 +1448,7 @@ function minimize_02(tree) {
 function minimize_01(tree) {
   // (A) -> A
 
-  if ((tree.isAdd() || tree.isMul()) && tree.val().length === 1) {
+  if (tree.val().length === 1 && (tree.isAdd() || tree.isMul())) {
     tree.delOuter();
 
     return true;
