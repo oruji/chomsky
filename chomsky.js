@@ -456,7 +456,7 @@ function minimize_36(tree) {
 
   if (tree.isMul() && tree.mul.length >= 3) {
     for (var i = 0; i < tree.mul.length - 2; i++) {
-      if (tree.mul[i].isAdd() && tree.mul[i + 1].isStar() && tree.mul[i].isAdd()) {
+      if (tree.mul[i].isAdd() && tree.mul[i + 1].isStar() && tree.mul[i + 2].isAdd()) {
         if (tree.mul[i + 1].star.isAdd()) {
           if (tree.mul[i].add.length == tree.mul[i + 2].add.length
               && tree.mul[i].add.length == tree.mul[i + 1].star.add.length + 1) {
