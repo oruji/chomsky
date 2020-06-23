@@ -132,8 +132,8 @@ minimize_list.push({ 'func': minimize_38, 'rule': "A(BC) -> ABC", 'type': '' });
 minimize_list.push({ 'func': minimize_39, 'rule': "(AB)C -> ABC", 'type': '' });
 minimize_list.push({ 'func': minimize_40, 'rule': "A+(B+C) -> A+B+C", 'type': '' });
 minimize_list.push({ 'func': minimize_41, 'rule': "(A+B)+C -> A+B+C", 'type': '' });
-minimize_list.push({ 'func': minimize_42, 'rule': "A...+A* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_04, 'rule': "λ+AA* -> A*", 'type': '' });
+minimize_list.push({ 'func': minimize_42, 'rule': "A...+A* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_08, 'rule': "λ* -> λ", 'type': '' });
 minimize_list.push({ 'func': minimize_09, 'rule': "(A*)* -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_10, 'rule': "(A*B*)* -> (A*+B*)*", 'type': '' });
@@ -160,6 +160,7 @@ minimize_list.push({ 'func': minimize_31, 'rule': "A+AB -> A(λ+B)", 'type': '' 
 minimize_list.push({ 'func': minimize_32, 'rule': "AB+A -> A(B+λ)", 'type': '' });
 minimize_list.push({ 'func': minimize_33, 'rule': "AB+B -> (A+λ)B", 'type': '' });
 minimize_list.push({ 'func': minimize_34, 'rule': "B+AB -> (λ+A)B", 'type': '' });
+
 minimize_list.push({ 'func': minimize_37, 'rule': "λ+AA* -> A* IF A*=λ+AA*", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
 minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
