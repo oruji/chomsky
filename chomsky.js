@@ -169,8 +169,16 @@ minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '
 minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
 // minimize_list.push({ 'func': minimize_18, 'rule': "A(B+C) -> AB+AC Distribute", 'type': '' });
 
+function minimize_45(tree) {
+  // (λ+A*B(A*B)*)A*
+
+  
+  
+  return false;
+}
+
 function minimize_44(tree) {
-// λ+A(A+B)* -> (AB*)*
+  // λ+A(A+B)* -> (AB*)*
 
   if (tree.isAdd() && tree.add.length >= 2) {
     var lamIdx = hasLam(tree.add);
@@ -234,7 +242,7 @@ function minimize_44(tree) {
 }
 
 function minimize_43(tree) {
-// λ+(A+B)*B -> (A*B)*
+  // λ+(A+B)*B -> (A*B)*
 
   if (tree.isAdd() && tree.add.length >= 2) {
     var lamIdx = hasLam(tree.add);
