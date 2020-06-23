@@ -161,10 +161,141 @@ minimize_list.push({ 'func': minimize_32, 'rule': "AB+A -> A(B+λ)", 'type': '' 
 minimize_list.push({ 'func': minimize_33, 'rule': "AB+B -> (A+λ)B", 'type': '' });
 minimize_list.push({ 'func': minimize_34, 'rule': "B+AB -> (λ+A)B", 'type': '' });
 
+minimize_list.push({ 'func': minimize_43, 'rule': "λ+(A+B)*B -> (A*B)*", 'type': '' });
+minimize_list.push({ 'func': minimize_44, 'rule': "λ+A(A+B)* -> (AB*)*", 'type': '' });
+
 minimize_list.push({ 'func': minimize_37, 'rule': "λ+AA* -> A* IF A*=λ+AA*", 'type': '' });
 minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
 minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
 // minimize_list.push({ 'func': minimize_18, 'rule': "A(B+C) -> AB+AC Distribute", 'type': '' });
+
+function minimize_44(tree) {
+// λ+A(A+B)* -> (AB*)*
+
+  if (tree.isAdd() && tree.add.length >= 2) {
+    var lamIdx = hasLam(tree.add);
+    
+    if (lamIdx > -1) {
+      for (var i = 0; i < tree.add.length; i++) {
+        if ( i == lamIdx) {
+          continue;
+        }
+        
+        if (tree.add[i].isMul() && tree.add[i].mul.length == 2) {
+          if (tree.add[i].mul[1].isStar() 
+              && tree.add[i].mul[1].star.isAdd()
+              && tree.add[i].mul[1].star.add.length == 2) {
+            
+            if (areEqual(tree.add[i].mul[1].star.add[0], tree.add[i].mul[0])) {
+              var starNode = tree.add[i].mul[1].star.add[1];
+              var nStarNode = tree.add[i].mul[1].star.add[0];
+              
+              var _inStar = genStar(starNode);
+              var _mul = genMul([nStarNode, _inStar]);
+              var _star = genStar(_mul);
+              
+              if (lamIdx > i) {
+                tree.add.splice(lamIdx, 1);
+                tree.add.splice(i, 1, _star);                
+                
+              } else {
+                tree.add.splice(i, 1);     
+                tree.add.splice(lamIdx, 1, _star);
+              }
+              
+              return true;
+              
+            } else if (areEqual(tree.add[i].mul[1].star.add[1], tree.add[i].mul[1])) {
+              var starNode = tree.add[i].mul[1].star.add[0];
+              var nStarNode = tree.add[i].mul[1].star.add[1];
+              
+              var _inStar = genStar(starNode);
+              var _mul = genMul([nStarNode, _inStar]);
+              var _star = genStar(_mul);
+              
+              if (lamIdx > i) {
+                tree.add.splice(lamIdx, 1);
+                tree.add.splice(i, 1, _star);                
+                
+              } else {
+                tree.add.splice(i, 1);     
+                tree.add.splice(lamIdx, 1, _star);
+              }
+
+              return true;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+function minimize_43(tree) {
+// λ+(A+B)*B -> (A*B)*
+
+  if (tree.isAdd() && tree.add.length >= 2) {
+    var lamIdx = hasLam(tree.add);
+    
+    if (lamIdx > -1) {
+      for (var i = 0; i < tree.add.length; i++) {
+        if ( i == lamIdx) {
+          continue;
+        }
+        
+        if (tree.add[i].isMul() && tree.add[i].mul.length == 2) {
+          if (tree.add[i].mul[0].isStar() 
+              && tree.add[i].mul[0].star.isAdd()
+              && tree.add[i].mul[0].star.add.length == 2) {
+            
+            if (areEqual(tree.add[i].mul[0].star.add[0], tree.add[i].mul[1])) {
+              var starNode = tree.add[i].mul[0].star.add[1];
+              var nStarNode = tree.add[i].mul[0].star.add[0];
+              
+              var _inStar = genStar(starNode);
+              var _mul = genMul([_inStar, nStarNode]);
+              var _star = genStar(_mul);
+              
+              if (lamIdx > i) {
+                tree.add.splice(lamIdx, 1);
+                tree.add.splice(i, 1, _star);                
+                
+              } else {
+                tree.add.splice(i, 1);     
+                tree.add.splice(lamIdx, 1, _star);
+              }
+              
+              return true;
+              
+            } else if (areEqual(tree.add[i].mul[0].star.add[1], tree.add[i].mul[1])) {
+              var starNode = tree.add[i].mul[0].star.add[0];
+              var nStarNode = tree.add[i].mul[0].star.add[1];
+              
+              var _inStar = genStar(starNode);
+              var _mul = genMul([_inStar, nStarNode]);
+              var _star = genStar(_mul);
+              
+              if (lamIdx > i) {
+                tree.add.splice(lamIdx, 1);
+                tree.add.splice(i, 1, _star);                
+                
+              } else {
+                tree.add.splice(i, 1);     
+                tree.add.splice(lamIdx, 1, _star);
+              }
+
+              return true;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return false;
+}
 
 function minimize_42(tree) {
   // A...+A* -> A*
@@ -361,7 +492,9 @@ function minimize_35(tree) {
       if (tree.mul[i].isAdd() && tree.mul[i + 1].isStar() && tree.mul[i + 2].isAdd()) {
         if (tree.mul[i].add.length == 2 && tree.mul[i + 2].add.length == 2) {
           if (contains(tree.mul[i].add, genLam())
-              && contains(tree.mul[i].add, tree.mul[i + 1].star)) {
+              && contains(tree.mul[i].add, tree.mul[i + 1].star)
+              && contains(tree.mul[i + 2].add, genLam())
+              && contains(tree.mul[i + 2].add, tree.mul[i + 1].star)){
             tree.mul.splice(0, 1);
             tree.mul.splice(-1, 1)
                 

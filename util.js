@@ -154,6 +154,16 @@ function hasMul(treeList) {
   return reList;
 }
 
+function hasLam(treeList) {
+  for (var i = 0; i < treeList.length; i++) {
+    if (treeList[i].isLam()) {
+      return i;
+    }
+  }
+  
+  return -1;
+}
+
 function areSame(treeList) {
   var first = treeList[0];
   for (var i = 1; i < treeList.length; i++) {
