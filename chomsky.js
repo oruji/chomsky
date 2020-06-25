@@ -154,6 +154,7 @@ minimize_list.push({ 'func': minimize_27, 'rule': "A*(A+B)* -> (A+B)*", 'type': 
 minimize_list.push({ 'func': minimize_28, 'rule': "(A+B)*A* -> (A+B)*", 'type': '' });
 minimize_list.push({ 'func': minimize_35, 'rule': "(λ+A)A*(λ+A) -> A*", 'type': '' });
 minimize_list.push({ 'func': minimize_36, 'rule': "(λ+A+B)(A+B)*(λ+A+B) -> (A+B)*", 'type': '' });
+
 minimize_list.push({ 'func': minimize_29, 'rule': "AB+AC -> A(B+C)", 'type': '' });
 minimize_list.push({ 'func': minimize_30, 'rule': "AB+CB -> (A+C)B", 'type': '' });
 minimize_list.push({ 'func': minimize_31, 'rule': "A+AB -> A(λ+B)", 'type': '' });
@@ -168,14 +169,6 @@ minimize_list.push({ 'func': minimize_37, 'rule': "λ+AA* -> A* IF A*=λ+AA*", '
 minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '' });
 minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
 // minimize_list.push({ 'func': minimize_18, 'rule': "A(B+C) -> AB+AC Distribute", 'type': '' });
-
-function minimize_45(tree) {
-  // (λ+A*B(A*B)*)A*
-
-  
-  
-  return false;
-}
 
 function minimize_44(tree) {
   // λ+A(A+B)* -> (AB*)*

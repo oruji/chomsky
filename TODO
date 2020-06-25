@@ -1,4 +1,4 @@
 - [x] ...aa*+a* -> a*
+- [x] (λ+a*b(a*b)*)a* -> (a+b)*
 - [ ] a*+(a+λ)a*(cc*+bb*(c*+b)) -> a*b*c*
 - [ ] (a(bb)*a+(a(bb)*ba+b)(a(bb)*a)*(a(bb)*ba+b))* -> (aa+bb+(ab+ba)(aa+bb)*(ab+ba))*
-- [x] (λ+a*b(a*b)*)a* -> (a+b)*
