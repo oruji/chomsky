@@ -170,6 +170,64 @@ minimize_list.push({ 'func': minimize_05, 'rule': "A+B -> B IF A⊆B", 'type': '
 minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
 // minimize_list.push({ 'func': minimize_18, 'rule': "A(B+C) -> AB+AC Distribute", 'type': '' });
 
+function minimize_46(tree) {
+  // (λ+B)A -> A+BA
+  
+  if (tree.isMul() && tree.mul.length >= 2) {
+    for (var i = 0; i < tree.mul.length - 1; i++) {
+      if (tree.mul[i].isAdd()) {
+        var lamIdx = hasLam(tree.mul[i].add);
+        
+        if (lamIdx > -1) {
+          tree.mul[i].add.splice(lamIdx, 1, tree.mul[i + 1]);
+          
+          for (j = 0; j < tree.mul[i].add.length; j++) {
+            if (j == lamIdx) {
+              continue;
+            }
+            tree.mul[i].add.splice(j, 1, genMul([tree.mul[i].add[j], tree.mul[i + 1]]));
+          }
+          
+          tree.mul.splice(i + 1, 1);
+          
+          return true;
+        }
+      }
+    }
+  }
+  
+  return false;
+}
+
+function minimize_45(tree) {
+  // A(λ+B) -> A+AB
+  
+  if (tree.isMul() && tree.mul.length >= 2) {
+    for (var i = 0; i < tree.mul.length - 1; i++) {
+      if (tree.mul[i + 1].isAdd()) {
+        var lamIdx = hasLam(tree.mul[i + 1].add);
+        
+        if (lamIdx > -1) {
+          tree.mul[i + 1].add.splice(lamIdx, 1, tree.mul[i]);
+          
+          for (j = 0; j < tree.mul[i + 1].add.length; j++) {
+            if (j == lamIdx) {
+              continue;
+            }
+            tree.mul[i + 1].add.splice(j, 1, genMul([tree.mul[i], tree.mul[i + 1].add[j]]));
+          }
+          
+          tree.mul.splice(i, 1);
+          
+          return true;
+        }
+      }
+    }
+  }
+  
+  return false;
+}
+
 function minimize_44(tree) {
   // λ+A(A+B)* -> (AB*)*
 
