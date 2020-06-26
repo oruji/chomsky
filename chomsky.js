@@ -195,12 +195,111 @@ minimize_list.push({ 'func': minimize_39, 'rule': "A+BB*A -> (λ+BB*)A", 'type':
 minimize_list.push({ 'func': minimize_40, 'rule': "AA*B+B -> (AA*+λ)B", 'type': '' });
 minimize_list.push({ 'func': minimize_41, 'rule': "A+ABB* -> A(λ+BB*)", 'type': '' });
 minimize_list.push({ 'func': minimize_42, 'rule': "ABB*+A -> A(BB*+λ)", 'type': '' });
+minimize_list.push({ 'func': minimize_43, 'rule': "A*+A*BB*A* -> A*(λ+BB*)A*", 'type': '' });
+minimize_list.push({ 'func': minimize_44, 'rule': "A*BB*A*+A* -> A*(BB*+λ)A*", 'type': '' });
 
 minimize_list.push({ 'func': minimize_36, 'rule': "λ+AA* -> A* IF A*=λ+AA*", 'type': '' });
 minimize_list.push({ 'func': minimize_37, 'rule': "A+B -> B IF A⊆B", 'type': '' });
 minimize_list.push({ 'func': minimize_38, 'rule': "A*B* -> B* IF A*⊆B*", 'type': '' });
 
 // minimize_list.push({ 'func': minimize_94, 'rule': "A(B+C) -> AB+AC Distribute", 'type': '' });
+
+function minimize_44(tree) {
+  // A*BB*A*+A* -> A*(BB*+λ)A*
+  
+  if (tree.isAdd() && tree.add.length >= 2) {
+    for (var i = 0; i < tree.add.length - 1; i++) {
+      if (tree.add[i].isMul() && tree.add[i].mul.length === 4) {
+        for (var j = i + 1; j < tree.add.length; j++) {
+          if (tree.add[j].isStar()) {
+            if (areEqual(arrLast(tree.add[i].mul), tree.add[j])
+                && areEqual(tree.add[i].mul[0], tree.add[j])) {
+              var first = null;
+              var last = null;
+              var hasStar = false;
+              
+              if (tree.add[i].mul[1].isStar()) {
+                first = tree.add[i].mul[1].star;
+                last = tree.add[i].mul[2];
+                hasStar = true;
+                
+              } else if (tree.add[i].mul[2].isStar()) {
+                last = tree.add[i].mul[2].star;
+                first = tree.add[i].mul[1]
+                hasStar = true;
+              }
+
+              if (areEqual(first, last) && hasStar) {
+                var last = tree.add[j];
+                var rest1 = genMul(tree.add[i].mul.slice(1, tree.add[i].mul.length - 1));
+                var rest2 = genLam();
+
+                var _add = genAdd([rest1, rest2]);
+                var _mul = genMul([last, _add, last]);
+
+                tree.add[i] = _mul;
+                tree.add.splice(j, 1);
+
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+function minimize_43(tree) {
+  // A*+A*BB*A* -> A*(λ+BB*)A*
+
+  if (tree.isAdd() && tree.add.length >= 2) {
+    for (var i = 0; i < tree.add.length - 1; i++) {
+      if (tree.add[i].isStar()) {
+        for (var j = i + 1; j < tree.add.length; j++) {
+          if (tree.add[j].isMul() && tree.add[j].mul.length === 4) {
+            if (areEqual(arrLast(tree.add[j].mul), tree.add[i])
+                && areEqual(tree.add[j].mul[0], tree.add[i])) {
+              var first = null;
+              var last = null;
+              var hasStar = false;
+
+              if (tree.add[j].mul[1].isStar()) {
+                first = tree.add[j].mul[1].star;
+                last = tree.add[j].mul[2];
+                hasStar = true;
+              }
+              
+              else if (tree.add[j].mul[2].isStar()) {
+                last = tree.add[j].mul[2].star;
+                first = tree.add[j].mul[1]
+                hasStar = true;
+              }
+
+              if (areEqual(first, last) && hasStar) {
+                var last = tree.add[i];
+                var rest1 = genLam();
+                var rest2 = genMul(tree.add[j].mul.slice(1, tree.add[j].mul.length - 1));
+
+                var _add = genAdd([rest1, rest2]);
+                var _mul = genMul([last, _add, last]);
+
+                tree.add[i] = _mul;
+                tree.add.splice(j, 1);
+
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return false;
+}
 
 function minimize_42(tree) {
   // ABB*+A -> A(BB*+λ)
