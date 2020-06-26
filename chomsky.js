@@ -9,6 +9,7 @@ var specs = {
   LAMBDA: '\u03BB'
 };
 
+var reg_list = [];
 var minimize_list = [];
 
 function strMinimize(regex, param) {
@@ -126,6 +127,36 @@ function minimize_step(regex) {
 
   return [result, arrLast(param.rulesDone)];
 }
+
+function minimize_step_reg(regex) {
+  var invar2;
+
+  for (var i = 0; i < reg_list.length; i++) {
+    result = regex.replace(reg_list[i].reg, reg_list[i].rep);
+    
+    if (regex !== result) {
+      return [result, reg_list[i].rule];
+    }
+  }
+  
+  return [result, ""];
+}
+
+reg_list.push({ 'rule': "REG (λ)* to λ", 'reg': /\((λ)\)\*/g, 'rep': "$1" });
+reg_list.push({ 'rule': "REG (A) to A", 'reg': /\((.)\)/g, 'rep': "$1" });
+reg_list.push({ 'rule': "REG λA to A", 'reg': /λ([^+*\)\)])/g, 'rep': "$1" });
+reg_list.push({ 'rule': "REG Aλ to A", 'reg': /([^+*\(\)])λ/g, 'rep': "$1" });
+reg_list.push({ 'rule': "REG λ+AA* to A*", 'reg': /λ\+([^+*\)])\1\*/g, 'rep': "$1*" });
+reg_list.push({ 'rule': "REG λ+A*A to A*", 'reg': /λ\+([^+*\)])\*\1/g, 'rep': "$1*" });
+reg_list.push({ 'rule': "REG AA*+λ to A*", 'reg': /([^+*\)])\1\*\+λ/g, 'rep': "$1*" });
+reg_list.push({ 'rule': "REG A*A+λ to A*", 'reg': /([^+*\)])\*\1\+λ/g, 'rep': "$1*" });
+reg_list.push({ 'rule': "REG (A*)* to (A*)", 'reg': /\((.\*)\)\*/g, 'rep': "($1)" });
+reg_list.push({ 'rule': "REG (A*) to A*", 'reg': /\((.\*)\)/g, 'rep': "$1" });
+reg_list.push({ 'rule': "REG A*A* to A*", 'reg': /([^+*\)])\*\1\*/g, 'rep': "$1" });
+reg_list.push({ 'rule': "REG (λ+A*B(A*B)*)A* to (A+B)*", 'reg': /\(λ\+(.)\*(.)\(\1\*\2\)\*\)(\1*)\1\*/g, 'rep': "($1+$2)*$3" });
+reg_list.push({ 'rule': "REG (A*B(A*B)*+λ)A* to (A+B)*", 'reg': /\((.)\*(.)\(\1\*\2\)\*\+λ\)(\1*)\1\*/g, 'rep': "($1+$2)*$3" });
+reg_list.push({ 'rule': "REG (A+λ)A* to A*", 'reg': /\((.)\1*\+λ\)(\1*)\1\*/g, 'rep': "$1*$2" });
+reg_list.push({ 'rule': "REG (λ+A)A* to A*", 'reg': /\(λ\+(.)\1*\)(\1*)\1\*/g, 'rep': "$1*$2" });
 
 minimize_list.push({ 'func': minimize_01, 'rule': "(A) -> A", 'type': '' });
 minimize_list.push({ 'func': minimize_02, 'rule': "A(BC) -> ABC", 'type': '' });

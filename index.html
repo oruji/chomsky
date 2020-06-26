@@ -104,37 +104,6 @@
         $("#myBench").text("00:00:00");
       }
     }
-
-    function minimize_step_reg(inVar) {
-      var invar2;
-      
-      var reg_list = [];
-      reg_list.push({ 'rule': "REG (λ)* to λ", 'reg': /\((λ)\)\*/g, 'rep': "$1" });
-      reg_list.push({ 'rule': "REG (A) to A", 'reg': /\((.)\)/g, 'rep': "$1" });
-      reg_list.push({ 'rule': "REG λA to A", 'reg': /λ([^+*\)\)])/g, 'rep': "$1" });
-      reg_list.push({ 'rule': "REG Aλ to A", 'reg': /([^+*\(\)])λ/g, 'rep': "$1" });
-      reg_list.push({ 'rule': "REG λ+AA* to A*", 'reg': /λ\+([^+*\)])\1\*/g, 'rep': "$1*" });
-      reg_list.push({ 'rule': "REG λ+A*A to A*", 'reg': /λ\+([^+*\)])\*\1/g, 'rep': "$1*" });
-      reg_list.push({ 'rule': "REG AA*+λ to A*", 'reg': /([^+*\)])\1\*\+λ/g, 'rep': "$1*" });
-      reg_list.push({ 'rule': "REG A*A+λ to A*", 'reg': /([^+*\)])\*\1\+λ/g, 'rep': "$1*" });
-      reg_list.push({ 'rule': "REG (A*)* to (A*)", 'reg': /\((.\*)\)\*/g, 'rep': "($1)" });
-      reg_list.push({ 'rule': "REG (A*) to A*", 'reg': /\((.\*)\)/g, 'rep': "$1" });
-      reg_list.push({ 'rule': "REG A*A* to A*", 'reg': /([^+*\)])\*\1\*/g, 'rep': "$1" });
-      reg_list.push({ 'rule': "REG (λ+A*B(A*B)*)A* to (A+B)*", 'reg': /\(λ\+(.)\*(.)\(\1\*\2\)\*\)(\1*)\1\*/g, 'rep': "($1+$2)*$3" });
-      reg_list.push({ 'rule': "REG (A*B(A*B)*+λ)A* to (A+B)*", 'reg': /\((.)\*(.)\(\1\*\2\)\*\+λ\)(\1*)\1\*/g, 'rep': "($1+$2)*$3" });
-      reg_list.push({ 'rule': "REG (A+λ)A* to A*", 'reg': /\((.)\1*\+λ\)(\1*)\1\*/g, 'rep': "$1*$2" });
-      reg_list.push({ 'rule': "REG (λ+A)A* to A*", 'reg': /\(λ\+(.)\1*\)(\1*)\1\*/g, 'rep': "$1*$2" });
-    
-      for (var i = 0; i < reg_list.length; i++) {
-        inVar2 = inVar.replace(reg_list[i].reg, reg_list[i].rep);
-        
-        if (inVar !== inVar2) {
-          return [inVar2, reg_list[i].rule];
-        }
-      }
-      
-      return [inVar2, ""];
-    }
     
     // diff color
     function colorize(source, result) {
