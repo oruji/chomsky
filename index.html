@@ -37,26 +37,22 @@
 
       // remove spaces
       inVar = inVar.replace(/\s/g,'')
-     
-      try {
-        var loop = function () {
-          if (simplifyStep()) {
-            setTimeout(loop, 0);
-          }
-        };
-        setTimeout(loop, 0);
 
-      } catch (err) {
-        $("#myError").text(err.message);
-      }
+      var loop = function () {
+        if (simplifyStep()) {
+          setTimeout(loop, 0);
+        }
+      };
+      setTimeout(loop, 0);
     }
 
     function simplifyStep() {
-      var outVar = minimize_step_reg(inVar);
-      
-      if (inVar === outVar[0]) {
-        outVar = minimize_step(inVar);
-      }
+      try {
+        var outVar = minimize_step_reg(inVar);
+        
+        if (inVar === outVar[0]) {
+          outVar = minimize_step(inVar);
+        }
 
       var isNotEnd = outVar[0] !== inVar;
 
@@ -96,6 +92,17 @@
       inVar = outVar[0];
 
       return isNotEnd;
+      
+      } catch (err) {
+        $("#myError").text(err.message);
+        $("#myStatusDiv").remove();
+        $("#outVar").text("");
+        $("#outVar2").text("");
+        $("#myCounter").text(0 + ", ");
+        $("#myLength").text(0);
+        $("#inLength").text(0);
+        $("#myBench").text("00:00:00");
+      }
     }
 
     function minimize_step_reg(inVar) {

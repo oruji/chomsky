@@ -160,7 +160,7 @@ minimize_list.push({ 'func': minimize_30, 'rule': "AB+CB -> (A+C)B", 'type': '' 
 minimize_list.push({ 'func': minimize_31, 'rule': "A+AB -> A(λ+B)", 'type': '' });
 minimize_list.push({ 'func': minimize_32, 'rule': "AB+A -> A(B+λ)", 'type': '' });
 minimize_list.push({ 'func': minimize_33, 'rule': "AB+B -> (A+λ)B", 'type': '' });
-minimize_list.push({ 'func': minimize_34, 'rule': "B+AB -> (λ+A)B", 'type': '' });
+minimize_list.push({ 'func': minimize_34, 'rule': "A+BA -> (λ+B)A", 'type': '' });
 
 minimize_list.push({ 'func': minimize_43, 'rule': "λ+(A+B)*B -> (A*B)*", 'type': '' });
 minimize_list.push({ 'func': minimize_44, 'rule': "λ+A(A+B)* -> (AB*)*", 'type': '' });
@@ -171,7 +171,7 @@ minimize_list.push({ 'func': minimize_13, 'rule': "A*B* -> B* IF A*⊆B*", 'type
 // minimize_list.push({ 'func': minimize_18, 'rule': "A(B+C) -> AB+AC Distribute", 'type': '' });
 
 function minimize_46(tree) {
-  // (λ+B)A -> A+BA
+  // (λ+A)B -> B+AB
   
   if (tree.isMul() && tree.mul.length >= 2) {
     for (var i = 0; i < tree.mul.length - 1; i++) {
@@ -568,7 +568,7 @@ function minimize_35(tree) {
 }
 
 function minimize_34(tree) {
-  // B+AB -> (λ+A)B
+  // A+BA -> (λ+B)A
   
   if (tree.isAdd() && tree.add.length >=2) {
     for (var i = 0; i < tree.add.length - 1; i++) {
