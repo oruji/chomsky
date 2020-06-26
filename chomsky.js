@@ -1743,10 +1743,10 @@ function secondComp(globArr) {
     itemArr.push(item);
   }
 
-  // if (itemArr.length === 0) {
-    // throw new RegError("Unexpected regex array: empty choice substaression at index " +
-      // globArr.index, globArr.index);
-  // }
+  if (itemArr.length === 0) {
+    throw new RegError("Unexpected regex array: empty choice substaression at index " +
+      globArr.index, globArr.index);
+  }
 
   return genType(types.MUL, itemArr);
 }
