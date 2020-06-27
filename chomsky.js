@@ -204,7 +204,7 @@ minimize_list.push({ 'func': minimize_40, 'rule': "A*+A*BB*A* -> A*(λ+BB*)A*", 
 minimize_list.push({ 'func': minimize_41, 'rule': "A*+A*B*BA* -> A*(λ+B*B)A*", 'type': '' });
 minimize_list.push({ 'func': minimize_42, 'rule': "A*BB*A*+A* -> A*(BB*+λ)A*", 'type': '' });
 minimize_list.push({ 'func': minimize_43, 'rule': "A*B*BA*+A* -> A*(B*B+λ)A*", 'type': '' });
-minimize_list.push({ 'func': minimize_44, 'rule': "A+..B(..B)*A -> (λ+..B(..B)*)A", 'type': '' });
+minimize_list.push({ 'func': minimize_44, 'rule': "A+AB(AB)*A -> (AB)*A", 'type': '' });
 
 minimize_list.push({ 'func': minimize_fsm01, 'rule': "λ+AA* -> A* IF A*=λ+AA*", 'type': '' });
 minimize_list.push({ 'func': minimize_fsm02, 'rule': "A+B -> B IF A⊆B", 'type': '' });
@@ -219,7 +219,7 @@ minimize_list.push({ 'func': minimize_fsm03, 'rule': "A*B* -> B* IF A*⊆B*", 't
 
 
 function minimize_44(tree) {
-  // A+..B(..B)*A -> (λ+..B(..B)*)A
+  // A+AB(AB)*A -> (AB)*A
 
   if (tree.isAdd() && tree.add.length >= 2) {
     for (var i = 0; i < tree.add.length - 1; i++) {
