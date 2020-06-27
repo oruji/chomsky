@@ -231,17 +231,21 @@ function minimize_44(tree) {
               if (starList.length == 1
                 && tree.add[j].mul[starList[0]].star.isMul()) {
 
-                tree.add[j] = genMul(starAdjust(tree.add[j].mul, starList[0]));
+                var addArr = starAdjust(tree.add[j].mul, starList[0]);
                 
-                if (areEqual(tree.add[j].mul[1].star, tree.add[j].mul[0])) {
-                  var _inMul = genMul(tree.add[j].mul.slice(0, tree.add[j].mul.length - 1));
-                  var _add = genAdd([genLam(), _inMul]);
-                  var _mul = genMul([_add, tree.add[i]]);
+                if (addArr.length > 0) {
+                  tree.add[j] = genMul(addArr);
+                  
+                  if (areEqual(tree.add[j].mul[1].star, tree.add[j].mul[0])) {
+                    var _inMul = genMul(tree.add[j].mul.slice(0, tree.add[j].mul.length - 1));
+                    var _add = genAdd([genLam(), _inMul]);
+                    var _mul = genMul([_add, tree.add[i]]);
 
-                  tree.add[i] = _mul;
-                  tree.add.splice(j, 1);
+                    tree.add[i] = _mul;
+                    tree.add.splice(j, 1);
 
-                  return true;
+                    return true;
+                  }
                 }                
               }
             }
@@ -266,17 +270,20 @@ function starAdjust(arrMul, myStar) {
     finalMul.push(arrMul[i]);
   }
   
-  if (areSame(finalMul), areSame(arrMul[myStar].star.mul)) {
-    if (finalMul.length == arrMul[myStar].star.mul.length
-        && areEqual(finalMul[0], arrMul[myStar].star.mul[0])) {
-      var returnList = []
-      
-      returnList.push(genMul(finalMul));
-      returnList.push(genStar(genMul(finalMul)));
-      returnList.push(arrLast(arrMul));
-      
-      return returnList;
+  if (finalMul.length == arrMul[myStar].star.mul.length) {
+    for (var i = 0; i < finalMul.length; i++) {
+      if(!areEqual(finalMul[i], arrMul[myStar].star.mul[i])) {
+        return [];
+      }
     }
+    
+    var returnList = []
+    
+    returnList.push(genMul(finalMul));
+    returnList.push(genStar(genMul(finalMul)));
+    returnList.push(arrLast(arrMul));
+    
+    return returnList;
   }
   
   return [];
