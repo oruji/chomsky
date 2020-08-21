@@ -1,4 +1,4 @@
-# [Chomsky](https://oruji.github.io/chomsky/)
+# [Chomsky](https://chomsky.amoozesh.org/)
 
 Chomsky is a javascript library to simplify and minimize Regular Expressions.
 
